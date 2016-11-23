@@ -3,7 +3,7 @@ package saveAndLoad;
 import java.io.File;
 import java.util.ArrayList;
 
-public interface saveAndLoad {
+public interface SaveAndLoad {
 	
 	/**
 	 * current xml file
@@ -19,7 +19,7 @@ public interface saveAndLoad {
 	 * @param file file to save data to.
 	 * @param data the data after any modifications.
 	 */
-	public void save(File file, ArrayList<ArrayList<String>> data);
+	public void save(File file, ArrayList<ArrayList<String>> data, ArrayList<String> coulmnNames, String tableName);
 	/**
 	 * load data form a specific file and if the file didn't change
 	 * we will return currentData variable.
