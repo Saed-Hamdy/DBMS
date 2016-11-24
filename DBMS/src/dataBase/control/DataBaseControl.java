@@ -6,7 +6,7 @@ public interface DataBaseControl {
 
 	// arsanuos
 	// create database OK
-	// insertIntoTable
+	// insertIntoTable OK
 	// seletctFromTable
 	// drop table OK
 	// drop database OK
@@ -60,7 +60,8 @@ public interface DataBaseControl {
 	 *            operations mean > < =
 	 * @param tableName
 	 */
-	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName);
+	public ArrayList<ArrayList<String>> selectFromTable(ArrayList<String> column, String[] conditions,
+			String tableName);
 
 	/**
 	 * update a specific row in table
@@ -91,4 +92,6 @@ public interface DataBaseControl {
 	 * @param newDataBaseName
 	 */
 	public void changeDataBase(String newDataBaseName);
+	
+	public ArrayList<ArrayList<String>> getWantedData();
 }

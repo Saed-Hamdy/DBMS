@@ -23,7 +23,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -31,7 +30,10 @@ import org.w3c.dom.Node;
 
 public class SaveAndLoadImpl implements SaveAndLoad {
 
-	public void save(File file, ArrayList<ArrayList<String>> data, ArrayList<String> coulmnNames, String tableName) {
+	ArrayList<String> coulmnNames, coulmnTypes;
+
+	public void save(File file, ArrayList<ArrayList<String>> data, ArrayList<String> coulmnNames,
+			ArrayList<String> coulmnTypes, String tableName) {
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -39,7 +41,9 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			Element rootElement = document.createElement(tableName);
 			rootElement.setAttribute("sizeRow", data.size() + "");
 			rootElement.setAttribute("sizeCol", coulmnNames.size() + "");
+			makeTypesAttributes(rootElement, coulmnNames, coulmnTypes);
 			document.appendChild(rootElement);
+
 			for (int i = 0; i < data.size(); i++) {
 				ArrayList<String> row = data.get(i);
 				Element rowElement = getElement(document, row, i, coulmnNames);
@@ -81,8 +85,9 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			int sizeRow = Integer.parseInt(sizeAtt);
 			sizeAtt = tableName.getAttribute("sizeCol");
 			int sizeCol = Integer.parseInt(sizeAtt);
-
+			coulmnTypes = (ArrayList<String>) FindTypesAttributes(tableName, sizeCol).clone();
 			ArrayList<String> colName = loadDTD(file);
+			coulmnNames = (ArrayList<String>) colName.clone();
 
 			Element docElements = document.getDocumentElement();
 			for (int j = 0; j < sizeRow; j++) {
@@ -109,6 +114,24 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		return rowElement;
 	}
 
+	private Element makeTypesAttributes(Element rootElement, ArrayList<String> coulmnNames,
+			ArrayList<String> coulmnTypes) {
+		for (int i = 0; i < coulmnNames.size(); i++) {
+			rootElement.setAttribute("coulmn" + i, coulmnNames.get(i) + ":" + coulmnTypes.get(i));
+		}
+		return rootElement;
+	}
+
+	private ArrayList<String> FindTypesAttributes(Element rootElement, int sizeCol) {
+		ArrayList<String> types = new ArrayList<String>();
+		for (int i = 0; i < sizeCol; i++) {
+			String type = rootElement.getAttribute("coulmn" + i);
+			types.add(type.substring(type.indexOf(":") + 1, type.length()));
+		}
+
+		return types;
+	}
+
 	private ArrayList<String> toArrayList(Element row, ArrayList<String> colName) {
 		ArrayList<String> rowData = new ArrayList<String>();
 		NodeList cells = null;
@@ -123,16 +146,12 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		return rowData;
 	}
 
-	@Override
-	public boolean isChaged(File file) {
-		// TODO Auto-generated method stub
-		return false;
+	public ArrayList<String> getCoulmnNames() {
+		return coulmnNames;
 	}
 
-	@Override
-	public ArrayList<ArrayList<String>> getData() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<String> getCoulmnTypes() {
+		return coulmnTypes;
 	}
 
 	public void saveDTD(ArrayList<String> colName, String tableName, String path) {
@@ -183,10 +202,14 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 					}
 				}
 				colNames.add(firstLine.substring(first, firstLine.length()));
+				fis.close();
+				isr.close();
+				br.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
