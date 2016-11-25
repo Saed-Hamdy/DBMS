@@ -6,10 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Parser implements IParser {
-    String table_name = new String();
-    String database_name = new String();
-    static ArrayList<String> coloums = new ArrayList<String>();
-    static ArrayList<String> value = new ArrayList<String>();
+
     /*
      * INSERT INTO table_name VALUES value1,value2,value3,... where hdegsh;
      */
@@ -70,6 +67,7 @@ public class Parser implements IParser {
     }
 
     public void CreateDataBase(String query) {
+        String database_name = new String();
         Pattern pat = Pattern.compile("^(\\s*)((?i)create)(\\s+)((?i)database)(\\s+)(\\w+)(\\s*);?(\\s*)$");
 
         Matcher ma = pat.matcher(query);
@@ -82,13 +80,15 @@ public class Parser implements IParser {
     }
 
     public void CreateTable(String query) {
+        String table_name = new String();
+        ArrayList<String> coloums = new ArrayList<String>();
+        ArrayList<String> value = new ArrayList<String>();
         Pattern pat = Pattern.compile(
                 "^(\\s*)((?i)create)(\\s+)((?i)table)(\\s+)(\\w+)(\\s*)\\((((\\s*)(\\w+)(\\s+)(\\w+)(\\s*),)*((\\s*)(\\w+)(\\s+)(\\w+)(\\s*))\\)(\\s*))(\\s*);?(\\s*)$");
 
         Matcher ma = pat.matcher(query);
         if (ma.matches()) {
             table_name = ma.group(6);
-            // for(int i=0;i<23;i++)
             ArrayList<String> NameAndType = new ArrayList<String>(
                     Arrays.asList(ma.group(8).replaceAll("[()]", "").split(",")));
             int size = NameAndType.size();
@@ -105,6 +105,9 @@ public class Parser implements IParser {
     }
 
     public void Insert(String query) {
+        String table_name = new String();
+        ArrayList<String> coloums = new ArrayList<String>();
+        ArrayList<String> value = new ArrayList<String>();
         Pattern pat = Pattern.compile("^(\\s*)((?i)insert)(\\s+)((?i)into)(\\s+)(\\w+)"
                 + "((\\s*)\\(((\\s*)(\\w+)(\\s*),)*((\\s*)(\\w+)(\\s*)\\)(\\s*)))?" + "((\\s+)((?i)values))(\\s*)\\("
                 + "(((\\s*)(('[^']*')|(\\d+))(\\s*),)*((\\s*)(('[^']*')|(\\d+))))(\\s*)\\)(\\s*)(\\s*);?(\\s*)$");
@@ -151,6 +154,7 @@ public class Parser implements IParser {
     }
 
     public void Delete(String query) {
+        String table_name = new String();
         Pattern pat = Pattern.compile(
                 "^(\\s*)((?i)delete)(\\s+)((?i)from)(\\s+)(\\w+)(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?\\s*;?$");
         Matcher ma = pat.matcher(query);
@@ -174,14 +178,7 @@ public class Parser implements IParser {
         // check..0
     }
 
-    public static void main(String[] args) {
-        Parser a = new Parser();
-        a.InsertQuery("INSERT INTO Customers (CustomerName, ContactName, Address, City, PostalCode, Country) VALUES('Cardinal','Tom B. Erichsen','Skagen 21','Stavanger', 4006 ,'Norway');");
-        for(int i=0;i<value.size();i++){
-            System.out.println(value.get(i));
-        }
 
-    }
 
     public void useDatabase(String name) {
 
