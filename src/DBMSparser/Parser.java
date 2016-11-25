@@ -32,20 +32,9 @@ public class Parser implements IParser {
      */
     DataBaseControlImpl Dpms = new DataBaseControlImpl();
 
-    public boolean validName(final String name) {
-        Pattern pattern;
-        Matcher matcher;
-        final String VALID_WORD = "^[A-Za-z][A-Za-z0-9_]*";
-        // table "^[a-zA-Z\\d][\\w#@]{0,127}$";
-        pattern = Pattern.compile(VALID_WORD);
-        matcher = pattern.matcher(name);
-        return matcher.matches();
-
-    }
-
     private void print(String str) {
 
-        print(str);
+        System.out.println(str);
     }
 
     private void error() {
@@ -55,19 +44,22 @@ public class Parser implements IParser {
     }
 
     /**
+     * take a Query and check if it is a valid operation then call the operation
+     * method.
      * 
      * @param query
      */
+
+    @Override
     public void InsertQuery(String query) {
-        if (query == null) {
+
+        if (query == null || query.replaceAll("^\\s*", "").equals("")) {
             error();
             return;
         }
         ArrayList<String> words = new ArrayList<String>(Arrays.asList(query.toLowerCase().split("\\s+")));
-
         while (words.remove(""))
             ;
-
         switch (words.get(0).toLowerCase()) {
         case "select":
             Select(query);
@@ -92,7 +84,7 @@ public class Parser implements IParser {
 
             break;
         case "use":
-
+            useDatabase(query);
             break;
         case "insert":
             Insert(query);
@@ -115,13 +107,13 @@ public class Parser implements IParser {
     }
 
     public void CreateDataBase(String query) {
-       // String database_name = new String();
+        // String database_name = new String();
         Pattern pat = Pattern.compile("^(\\s*)((?i)create)(\\s+)((?i)database)(\\s+)(\\w+)(\\s*);?(\\s*)$");
 
         Matcher ma = pat.matcher(query);
 
         if (ma.matches()) {
-           // database_name = ma.group(6);
+            // database_name = ma.group(6);
             Dpms.createDataBase(ma.group(6));
 
         }
@@ -160,8 +152,7 @@ public class Parser implements IParser {
         ArrayList<String> coloums = new ArrayList<String>();
         ArrayList<String> value = new ArrayList<String>();
         Pattern pat = Pattern.compile("^(\\s*)((?i)insert)(\\s+)((?i)into)(\\s+)(\\w+)"
-                + "((\\s*)\\(((\\s*)(\\w+)(\\s*),)*((\\s*)(\\w+)(\\s*)\\)(\\s*)))?" 
-                + "((\\s+)((?i)values))(\\s*)\\("
+                + "((\\s*)\\(((\\s*)(\\w+)(\\s*),)*((\\s*)(\\w+)(\\s*)\\)(\\s*)))?" + "((\\s+)((?i)values))(\\s*)\\("
                 + "(((\\s*)(('[^']*')|(\\d+))(\\s*),)*((\\s*)(('[^']*')|(\\d+))))(\\s*)\\)(\\s*)(\\s*);?(\\s*)$");
         /*
          * INSERT INTO TABLE_NAME (column1, column2, column3,...columnN) VALUES
@@ -194,12 +185,12 @@ public class Parser implements IParser {
 
             }
             Dpms.insertIntoTable(coloums, value, table_name);
-        }else{
+        } else {
             error();
         }
 
     }
-    
+
     public void useDatabase(String query) {
         String usePattern = "^\\s*((?i)use)\\s+(\\w+)\\s*;?\\s*$";
         Pattern pat = Pattern.compile(usePattern);
@@ -208,8 +199,8 @@ public class Parser implements IParser {
             error();
             return;
         }
-       // Dpms.useDatabase(ma.group(2));
- 
+        // Dpms.useDatabase(ma.group(2));
+
     }
 
     public void DropDataBase(String query) {
@@ -237,17 +228,16 @@ public class Parser implements IParser {
     }
 
     public void Delete(String query) {
-        //String table_name = new String();
+        // String table_name = new String();
         Pattern pat = Pattern.compile("^(\\s*)((?i)delete)(\\s+)((?i)from)(\\s+)(\\w+)"
                 + "(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?\\s*;?$");
         Matcher ma = pat.matcher(query);
         if (ma.matches()) {
-                        
-        Dpms.deleteFromTable(Where((ma.group(9))), ma.group(6));
-        }else{
+
+            Dpms.deleteFromTable(Where((ma.group(9))), ma.group(6));
+        } else {
             error();
         }
-        
 
     }
 
@@ -308,7 +298,7 @@ public class Parser implements IParser {
         if (condition == null) {
             return new String[1];
         }
-        
+
         String WhereCondtionPattern = "(\\w+)\\s*(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))";
         Pattern pat = Pattern.compile(WhereCondtionPattern);
         Matcher ma = pat.matcher(condition);
@@ -347,7 +337,12 @@ public class Parser implements IParser {
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         Parser a = new Parser();
-       
+        for (int i = 0; i < 5; i++) {
+            System.out.println("jjj");
+            String s = in.nextLine();
+            a.InsertQuery(s);
+        }
+        //
     }
 
 }

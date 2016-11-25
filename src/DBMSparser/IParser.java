@@ -1,7 +1,10 @@
 package DBMSparser;
 
 public interface IParser {
-    //void InsertQuery(String query);
-
+    /**
+     * take a Query and check if it valid then start excute.
+     * @param query
+     */
+    void InsertQuery(String query);
 
 }
