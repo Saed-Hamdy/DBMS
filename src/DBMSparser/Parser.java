@@ -308,6 +308,7 @@ public class Parser implements IParser {
         if (condition == null) {
             return new String[1];
         }
+        
         String WhereCondtionPattern = "(\\w+)\\s*(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))";
         Pattern pat = Pattern.compile(WhereCondtionPattern);
         Matcher ma = pat.matcher(condition);
