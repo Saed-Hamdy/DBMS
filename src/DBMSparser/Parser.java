@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dataBase.control.DataBaseControlImpl;
+import model.DBMS;
 
 public class Parser implements IParser {
     /*
@@ -44,12 +45,12 @@ public class Parser implements IParser {
 
     private void print(String str) {
 
-        System.out.println(str);
+        print(str);
     }
 
     private void error() {
 
-        System.out.println("error");
+        print("error");
         return;
     }
 
@@ -63,11 +64,8 @@ public class Parser implements IParser {
             return;
         }
         ArrayList<String> words = new ArrayList<String>(Arrays.asList(query.toLowerCase().split("\\s+")));
-        ArrayList<String> queryArr = new ArrayList<String>(Arrays.asList(query.split("\\s+")));
 
         while (words.remove(""))
-            ;
-        while (queryArr.remove(""))
             ;
 
         switch (words.get(0).toLowerCase()) {
@@ -76,53 +74,147 @@ public class Parser implements IParser {
             break;
 
         case "drop":
-            if (words.get(1).equals("table") && words.size() == 3) {
-                if (validName(words.get(2)))
-                    DropTable(query);
-
-            } else if (words.get(1).equals("database") && words.size() == 3) {
-                if (validName(words.get(2)))
-                    DropDataBase(query);
+            if (words.get(1).equals("table")) {
+                DropTable(query);
+            } else if (words.get(1).equals("database")) {
+                DropDataBase(query);
             } else {
                 error();
-                return;
             }
 
             break;
         case "delete":
-
+            Delete(query);
+            ;
             break;
         case "update":
             Update(query);
 
             break;
-        case "insert":
+        case "use":
 
+            break;
+        case "insert":
+            Insert(query);
             break;
         case "create":
-            // call create of database and table
+            if (words.get(1).equals("table")) {
+                CreateTable(query);
+            } else if (words.get(1).equals("database")) {
+                CreateDataBase(query);
+            } else {
+                error();
+                return;
+            }
+            break;
         default:
+            error();
 
             break;
+        }
+    }
+
+    public void CreateDataBase(String query) {
+       // String database_name = new String();
+        Pattern pat = Pattern.compile("^(\\s*)((?i)create)(\\s+)((?i)database)(\\s+)(\\w+)(\\s*);?(\\s*)$");
+
+        Matcher ma = pat.matcher(query);
+
+        if (ma.matches()) {
+           // database_name = ma.group(6);
+            Dpms.createDataBase(ma.group(6));
+
         }
 
     }
 
-    public void CreateDataBase(String name) {
-
-    }
-
     public void CreateTable(String query) {
+        String table_name = new String();
+        ArrayList<String> coloums = new ArrayList<String>();
+        ArrayList<String> value = new ArrayList<String>();
+        Pattern pat = Pattern.compile("^(\\s*)((?i)create)(\\s+)((?i)table)(\\s+)(\\w+)(\\s*)"
+                + "\\((((\\s*)(\\w+)(\\s+)((?i)varchar|(?i)int)(\\s*),)*((\\s*)(\\w+)(\\s+)((?i)varchar|(?i)int)"
+                + "(\\s*))\\)(\\s*))(\\s*);?(\\s*)$");
+
+        Matcher ma = pat.matcher(query);
+        if (ma.matches()) {
+            table_name = ma.group(6);
+            ArrayList<String> NameAndType = new ArrayList<String>(
+                    Arrays.asList(ma.group(8).replaceAll("[()]", "").split(",")));
+            int size = NameAndType.size();
+            for (int i = 0; i < size; i++) {
+                ArrayList<String> temp = new ArrayList<String>(Arrays.asList(NameAndType.get(i).split("\\s+")));
+                if (temp.get(0).equals(""))
+                    temp.remove(0);
+                coloums.add(temp.get(0));
+                value.add(temp.get(1));
+
+            }
+            Dpms.createTable(table_name, coloums, value);
+        }
 
     }
 
     public void Insert(String query) {
+        String table_name = new String();
+        ArrayList<String> coloums = new ArrayList<String>();
+        ArrayList<String> value = new ArrayList<String>();
+        Pattern pat = Pattern.compile("^(\\s*)((?i)insert)(\\s+)((?i)into)(\\s+)(\\w+)"
+                + "((\\s*)\\(((\\s*)(\\w+)(\\s*),)*((\\s*)(\\w+)(\\s*)\\)(\\s*)))?" 
+                + "((\\s+)((?i)values))(\\s*)\\("
+                + "(((\\s*)(('[^']*')|(\\d+))(\\s*),)*((\\s*)(('[^']*')|(\\d+))))(\\s*)\\)(\\s*)(\\s*);?(\\s*)$");
+        /*
+         * INSERT INTO TABLE_NAME (column1, column2, column3,...columnN) VALUES
+         * (value1, value2, value3,...valueN);
+         */
+        Matcher ma = pat.matcher(query);
+        if (ma.matches()) {
+            print("mat");
+            table_name = ma.group(6);
+            if (ma.group(7) == null)
+                coloums = new ArrayList<String>();
+            else
+                coloums = new ArrayList<String>(
+                        Arrays.asList(ma.group(7).replaceAll("\\s+", "").replaceAll("[()]", "").split(",")));
+            String trim = ma.group(22) + ",";
+            while (!trim.replaceAll("\\s+", "").replaceAll("[,]", "").equals("")) {
+                Pattern patt = Pattern.compile("('(\\s*[^']+\\s*)')|(\\s*(\\d+)\\s*,)");
+                Matcher matc = patt.matcher(trim.replaceAll("\\)(?i)values", "\\) values"));
 
+                if (matc.find()) {
+
+                    if (trim.charAt(matc.start()) == '\'') {
+                        value.add(trim.substring(matc.start() + 1, matc.end() - 1));
+                    } else {
+                        value.add(trim.substring(matc.start(), matc.end() - 1));
+
+                    }
+                    trim = trim.substring(matc.end());
+                }
+
+            }
+            Dpms.insertIntoTable(coloums, value, table_name);
+        }else{
+            error();
+        }
+
+    }
+    
+    public void useDatabase(String query) {
+        String usePattern = "^\\s*((?i)use)\\s+(\\w+)\\s*;?\\s*$";
+        Pattern pat = Pattern.compile(usePattern);
+        Matcher ma = pat.matcher(query);
+        if (!ma.matches()) {
+            error();
+            return;
+        }
+       // Dpms.useDatabase(ma.group(2));
+ 
     }
 
     public void DropDataBase(String query) {
-        String DropPattern = "^\\s*((?i)drop)\\s+((?i)database)\\s+(\\w+)\\s*;?\\s*$";
-        Pattern pat = Pattern.compile(DropPattern);
+        String usePattern = "^\\s*((?i)drop)\\s+((?i)database)\\s+(\\w+)\\s*;?\\s*$";
+        Pattern pat = Pattern.compile(usePattern);
         Matcher ma = pat.matcher(query);
         if (!ma.find()) {
             error();
@@ -145,6 +237,17 @@ public class Parser implements IParser {
     }
 
     public void Delete(String query) {
+        //String table_name = new String();
+        Pattern pat = Pattern.compile("^(\\s*)((?i)delete)(\\s+)((?i)from)(\\s+)(\\w+)"
+                + "(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?\\s*;?$");
+        Matcher ma = pat.matcher(query);
+        if (ma.matches()) {
+                        
+        Dpms.deleteFromTable(Where((ma.group(9))), ma.group(6));
+        }else{
+            error();
+        }
+        
 
     }
 
@@ -161,7 +264,7 @@ public class Parser implements IParser {
 
         Pattern pat = Pattern.compile(selectPattern);
         Matcher ma = pat.matcher(query);
-        // System.out.println(ma.find());
+        // print(ma.find());
 
         if (!ma.find()) {
             error();
@@ -243,45 +346,7 @@ public class Parser implements IParser {
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         Parser a = new Parser();
-        // for(int i=10;i>0;i++){
-        // a.InsertQuery(in.nextLine());
-        // }
-        // Update sss set jjg=jj ,jj=58 where a=8 ;
-        // select sss,kkf from wher ;
-        // Drop table ggg ;
-        // Drop database hjhjdf ;
-        String DropPattern = "^\\s*((?i)drop)\\s+((?i)table)\\s+(\\w+)\\s*;?\\s*$";
-        Pattern pat = Pattern.compile(DropPattern);
-        Matcher ma = pat.matcher("drop table jjjff  ;  ");
-        if (ma.find()) {
-            System.out.println("k");
-            for (int i = 1; i < 20; i++) {
-                System.out.println(i + " " + ma.group(i));
-
-            }
-        }
+       
     }
 
-    // String DropPattern
-    // ="^\\s*((?i)drop)\\s+((?i)table)\\s+(\\w+)\\s*;?\\s*$";
-    // String selectPattern =
-    // "^\\s*((?i)select\\s+)((\\*\\s*)|((\\s*(\\w+)\\s*,)*(\\s*(\\w+)\\s+)))\\s*((?i)from\\s+)(\\w+)"
-    // +
-    // "(\\s*((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?\\s*;?\\s*$";
-    // Pattern pat = Pattern.compile(selectPattern);
-    // // Matcher ma = pat.matcher("select jjfj , jhh, hhhth, hf from ttt where
-    // xx=''");
-    // // System.out.println(ma.find());
-    //
-    // if (ma.find()) {
-    // System.out.println("k");
-    // for (int i = 1; i < 20; i++) {
-    // System.out.println(i + " " + ma.group(i));
-    //
-    // }
-    // String colom = ma.group(2);
-    // String tableName = ma.group(10);
-    //
-    // }
-    // }
 }
