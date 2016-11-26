@@ -1,0 +1,4 @@
+<!ELEMENT testTable (id,name,state)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT state (#PCDATA)>

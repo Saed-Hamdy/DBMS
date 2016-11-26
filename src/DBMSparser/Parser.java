@@ -116,7 +116,7 @@ public class Parser implements IParser {
             // database_name = ma.group(6);
             Dpms.createDataBase(ma.group(6));
 
-        }else{
+        } else {
             error();
         }
 
@@ -160,9 +160,9 @@ public class Parser implements IParser {
          * INSERT INTO TABLE_NAME (column1, column2, column3,...columnN) VALUES
          * (value1, value2, value3,...valueN);
          */
-        Matcher ma = pat.matcher(query);
+        Matcher ma = pat.matcher(query.replaceAll("\\)(?i)values", "\\) values"));
         if (ma.matches()) {
-            print("mat");
+            // print("mat");
             table_name = ma.group(6);
             if (ma.group(7) == null)
                 coloums = new ArrayList<String>();
@@ -172,7 +172,7 @@ public class Parser implements IParser {
             String trim = ma.group(22) + ",";
             while (!trim.replaceAll("\\s+", "").replaceAll("[,]", "").equals("")) {
                 Pattern patt = Pattern.compile("('(\\s*[^']+\\s*)')|(\\s*(\\d+)\\s*,)");
-                Matcher matc = patt.matcher(trim.replaceAll("\\)(?i)values", "\\) values"));
+                Matcher matc = patt.matcher(trim);
 
                 if (matc.find()) {
 
@@ -213,7 +213,7 @@ public class Parser implements IParser {
             error();
             return;
         }
-        Dpms.dropTable(ma.group(3));
+        Dpms.dropDataBase(ma.group(3));
 
     }
 
@@ -265,6 +265,8 @@ public class Parser implements IParser {
             colomsName = new ArrayList<String>(Arrays.asList(ma.group(2).replaceAll("\\s+", "").split(",")));
             tableName = ma.group(10);
             String[] wherecondition = Where(ma.group(13));
+            if (colomsName.get(0).equals("*"))
+                colomsName = new ArrayList<>();
             Dpms.selectFromTable(colomsName, wherecondition, tableName);
         }
 
@@ -309,8 +311,8 @@ public class Parser implements IParser {
             cndition[0] = ma.group(1);
             cndition[1] = ma.group(2);
             cndition[2] = ma.group(3);
-            if(cndition[2].endsWith("'")){
-                cndition[2]=cndition[2].substring(1,cndition[2].length()-2);
+            if (cndition[2].endsWith("'")) {
+                cndition[2] = cndition[2].substring(1, cndition[2].length() - 1);
             }
         }
         return cndition;
@@ -320,6 +322,9 @@ public class Parser implements IParser {
     public ArrayList<ArrayList<String>> colomValuesSpliter(String colomStateMent) {
         ArrayList<ArrayList<String>> clmAndVlu = new ArrayList<>();
         ArrayList<String> temp = new ArrayList<>();
+        //if (colomStateMent.endsWith("'"))
+            colomStateMent = colomStateMent.replaceAll("'\\s*$", "");
+
         colomStateMent = colomStateMent.replaceAll("\\s*=\\s*'?", "=");
         colomStateMent = colomStateMent.replaceAll("'\\s*", "'");
         colomStateMent = colomStateMent.replaceAll("(\\d+)\\s*,\\s*", "$1',");
@@ -340,107 +345,106 @@ public class Parser implements IParser {
     }
 
     public static void main(String[] args) {
-       // Scanner in = new Scanner(System.in);
+        // Scanner in = new Scanner(System.in);
         Parser a = new Parser();
-        ArrayList<String>query= new ArrayList<>();
-        
+        // a.InsertQuery("select name ,state from testTable1 where id ='2' ;");
+
+        // a.Insert("INSERT INTO Customers(CustomerName, ContactName, Address,
+        // City, PostalCode, Country)"
+        // + "VALUES ('Cardinal','Tom B. Erichsen','Skagen
+        // 21','Stavanger','4006','Norway');");
+        ArrayList<String> query = new ArrayList<>();
+        query.add("drop database test1 ;");
+        query.add("drop database test ;");
         query.add("create Database test1 ;");
         query.add("create Database test ;");
-        query.add("create table testTable ("
-                + "id int ,name varchar, state varchar) ;");
-        query.add("create table testTable1 ("
-                + "id int ,name varchar, state varchar) ;");
-        
-        query.add("inser into testTable "
-                + "values (1, 'hendy; , 'da7e7')");
-        query.add("inser into testTable "
-                + "values (2, 'arsanuse' , 'da7e72')");
-        query.add("inser into testTable (id,name,state )"
-                + "values (3, '7osam' , 'da7e7')");
-        query.add("inser into testTable (id,name )"
-                + "values (4, 'saed' )");
+        query.add("create table testTable (" + "id int ,name varchar, state varchar) ;");
+        query.add("create table testTable1 (" + "id int ,name varchar, state varchar) ;");
 
+        query.add("insert into testTable " + "values (1, 'hendy' , 'da7e7')");
+        query.add("insert into testTable " + "values (2, 'arsanuse' , 'da7e72')");
+        query.add("insert into testTable (id,name,state )" + "values (3, '7osam' , 'da7e7')");
+        query.add("insert into testTable (id,name )" + "values (4, 'saed' )");
 
-        query.add("inser into testTable1 "
-                + "values (1, 'arsanuse' , 'da7e   7(2)')");
-        query.add("inser into testTable1 (id,name,state )"
-                + "values (2, '7osam' , 'da7e   7')");
-        query.add("inser into testTable1 (id,name )"
-                + "values (3, 'saed' )");
-        query.add("inser into testTable1"
-                + "values (4, 'hendy; , 'da7e   7')");
-        
+        query.add("insert into testTable1 " + "values (1, 'arsanuse' , 'da7e   7(2)')");
+        query.add("insert into testTable1 (id,name,state )" + "values (2, '7osam' , 'da7e   7')");
+        query.add("insert into testTable1 (id,name )" + "values (3, 'saed' )");
+        query.add("insert into testTable1 " + "values (4, 'hendy' , 'da7e   7')");
+
         query.add("select * from testTable ;");
         query.add("select name ,state from testTable ;");
         query.add("select id ,state from testTable ;");
         query.add("select state from testTable ;");
-      //  query.add("select * from testTable ;");
+        // query.add("select * from testTable ;");
+
         query.add("select name ,state from testTable where id ='2' ;");
         query.add("select id ,state from testTable where name ='hendy' ;");
         query.add("select state from testTable where name ='7osam' ;");
-      
-        
 
         query.add("select * from testTable1 ;");
         query.add("select name ,state from testTable1 ;");
         query.add("select id ,state from testTable1 ;");
         query.add("select state from testTable1 ;");
-       // query.add("select * from testTable1 ;");
+        // query.add("select * from testTable1 ;");
         query.add("select name ,state from testTable1 where id ='2' ;");
         query.add("select id ,state from testTable1 where name ='hendy' ;");
         query.add("select state from testTable1 where name ='7osam' ;");
 
-        query.add("update testTable set name='saeeeed',state = 'hahaha' where name ='hendy");
+        query.add("update testTable set name='saeeeed',state = 'hahaha' where name ='hendy' ;");
         query.add("update testTable set name='saeeeed' ;");
-        
+
         query.add("update testTable set name='sa3sa3',id =10 where id ='2'");
         query.add("update testTable set name='saeeeed' where id ='4'");
-        
-        
-        query.add("update testTable1 set name='7sammmm',state = 'hahaha' where name ='hendy");
+
+        query.add("update testTable1 set name='7sammmm',state = 'hahaha' where name ='hendy'");
         query.add("update testTable1 set name='7osam' ;");
         query.add("update testTable1 set name='7oos',id =10 where id ='2'");
         query.add("update testTable1 set name='7osam' where id ='4'");
-        
+
         query.add("select name ,state from testTable1 where id ='10' ;");
         query.add("select id ,state from testTable1 where name ='7osam' ;");
         query.add("select state from testTable1 where name ='7oos' ;");
-      
-        query.add("select name ,state from testTable where id ='10' ;");
+
+        query.add("select name ,state from testTable where id >'1' ;");
         query.add("select id ,state from testTable where name ='saeed' ;");
         query.add("select state from testTable where state ='hahaha' ;");
-        
 
         query.add("drop table testTable1  ;");
         /**
-         * exception 
+         * exception
          */
-        query.add("select name ,state from testTable1 where id ='10' ;");
-        
-        query.add("select * from testTable ;");        
-        query.add("delete from testTable where id ='10';");
-        query.add("select * from testTable ;"); 
-        
-        query.add("drop database test1 ;");
-        /**
-         * exceptions
-         */
-        query.add("create Database test1 ;");
-        query.add("create Database test ;");
+      //  query.add("select name ,state from testTable1 where id ='10' ;");
+
         query.add("select * from testTable ;");
-        
-      for (String s : query)
-          a.InsertQuery(s);
-      
-        
-      
-        /*  for (int i = 0; i < 5; i++) {
-            System.out.println("jjj");
-            String s = in.nextLine();
+        query.add("delete from testTable where id ='10';");
+//        query.add("select * from testTable ;");
+//
+//        query.add("drop database test1 ;");
+//        query.add("select * from testTable ;");
+//        query.add("select state,id from testTable where id>0 ;");
+//        
+//        /**
+//         * exceptions
+//         */
+//        query.add("create Database test1 ;");
+//        //query.add("create Database test ;");
+//        query.add("select * from testTable ;");
+        Scanner in = new Scanner(System.in);
+        for (String s : query) {
             a.InsertQuery(s);
-        }*/
+            System.out.println(s);
+            in.nextLine();
+        }
+        
+        a.InsertQuery("select name ,state from testTable where id >'2' ");
+
+        /*
+         * for (int i = 0; i < 5; i++) { System.out.println("jjj"); String s =
+         * in.nextLine(); a.InsertQuery(s); }
+         */
         //
-        a.InsertQuery("update hhh set cc='hhg' ,ggf=25,hhh='nn' Where jjj='fgg' ;");
+        // a.InsertQuery("update hhh set cc='hhg' ,ggf=25,hhh='nn' Where
+        // jjj='fgg' ;");
     }
 
 }

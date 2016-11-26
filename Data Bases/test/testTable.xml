@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE testTable SYSTEM "testTable.dtd">
+<testTable coulmn0="id:int" coulmn1="name:varchar" coulmn2="state:varchar" sizeCol="3" sizeRow="3">
+<row0>
+<id>1</id>
+<name>saeeeed</name>
+<state>hahaha</state>
+</row0>
+<row1>
+<id>3</id>
+<name>saeeeed</name>
+<state>da7e7</state>
+</row1>
+<row2>
+<id>4</id>
+<name>saeeeed</name>
+<state> </state>
+</row2>
+</testTable>
