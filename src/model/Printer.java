@@ -40,8 +40,9 @@ public class Printer implements PrinterIF {
 	@Override
 	public void printTable(ArrayList<String> columnNames, ArrayList<ArrayList<String>> data, String tableName) {
 		// TODO Auto-generated method stub
+		if (tableName == null)
+			return;
 		System.out.println(tableName + ":");
-		data.add(0, columnNames);
 		ArrayList<Integer> width = findMaxWidth(data);
 		for (int i = 0; i < data.size(); i++) {
 			printLine(width);
@@ -49,7 +50,7 @@ public class Printer implements PrinterIF {
 			printRow(width, data.get(i), columnNames.size());
 		}
 		printLine(width);
-
+		System.out.println();
 	}
 
 	private ArrayList<Integer> findMaxWidth(ArrayList<ArrayList<String>> data) {

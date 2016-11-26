@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
@@ -70,7 +69,6 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 
 	@Override
 	public ArrayList<ArrayList<String>> load(File file) {
-		// TODO Auto-generated method stub
 		Document document;
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		ArrayList<ArrayList<String>> tableData = new ArrayList<ArrayList<String>>();
@@ -128,7 +126,6 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			String type = rootElement.getAttribute("coulmn" + i);
 			types.add(type.substring(type.indexOf(":") + 1, type.length()));
 		}
-
 		return types;
 	}
 
@@ -181,9 +178,12 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		String fileName = file.getName();
 		fileName = fileName.substring(0, fileName.length() - 4);
 		String tableName = fileName;
-		String path = file.getPath();
-		path = path.substring(0, path.lastIndexOf("\\"));
 		fileName += ".dtd";
+		String path = file.getPath();
+		path = file.getParent();
+		// to handle if not windows
+		//path = path.substring(0, path.lastIndexOf("\\"));
+
 		file = new File(path, fileName);
 		ArrayList<String> colNames = new ArrayList<String>();
 		try {
@@ -193,6 +193,7 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			try {
 				String firstLine = br.readLine();
 				// 15 & -2 to get rid of the unwanted characters
+				
 				firstLine = firstLine.substring(12 + tableName.length(), firstLine.length() - 2);
 				int first = 0;
 				for (int i = 0; i < firstLine.length(); i++) {

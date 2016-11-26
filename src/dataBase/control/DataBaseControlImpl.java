@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import model.Printer;
+import model.PrinterIF;
 import saveAndLoad.SaveAndLoad;
 import saveAndLoad.SaveAndLoadImpl;
 
@@ -13,13 +15,17 @@ public class DataBaseControlImpl implements DataBaseControl {
 	ArrayList<String> coulmnNames, coulmnTypes;
 	SaveAndLoad saveAndLoadObj;
 	File file;
+	PrinterIF printerObj;
 
 	public DataBaseControlImpl() {
+		currentDataBase = "";
+		currentTableName = "";
 		currentTableData = new ArrayList<ArrayList<String>>();
 		coulmnNames = new ArrayList<String>();
 		coulmnTypes = new ArrayList<String>();
 		saveAndLoadObj = new SaveAndLoadImpl();
 		wantedData = new ArrayList<ArrayList<String>>();
+		printerObj = new Printer();
 	}
 
 	@Override
@@ -28,19 +34,25 @@ public class DataBaseControlImpl implements DataBaseControl {
 			File x = new File("Data Bases");
 			File newDataBase = new File(x.getAbsolutePath(), dataBaseName);
 			if (newDataBase.exists()) {
+				currentDataBase = "";
 				throw new RuntimeException();
 			} else {
 				newDataBase.mkdir();
 				wantedData = new ArrayList<ArrayList<String>>();
 				currentDataBase = dataBaseName;
+				coulmnNames = new ArrayList<String>();
+				coulmnTypes = new ArrayList<String>();
+				currentTableName = "";
 			}
 		}
 	}
 
 	@Override
 	public void createTable(String tableName, ArrayList<String> columnNames, ArrayList<String> types) {
+		this.currentTableName = tableName;
 		File file = makeFile(currentDataBase, tableName, ".xml");
 		if (file.exists()) {
+			currentTableName = "";
 			throw new RuntimeException();
 		} else {
 			this.coulmnNames = columnNames;
@@ -49,25 +61,23 @@ public class DataBaseControlImpl implements DataBaseControl {
 			this.currentTableData = new ArrayList<ArrayList<String>>();
 			saveAndLoadObj.save(file, currentTableData, columnNames, types, tableName);
 			setWantedData(this.coulmnNames, this.currentTableData);
+			printerObj.printTable(getCoulmnNames(), getWantedData(), getTableName());
 		}
 	}
 
 	@Override
 	public void insertIntoTable(ArrayList<String> columns, ArrayList<String> values, String tableName) {
 		ready(tableName);
-
-		// check if columns is valid
-		// valid values types
-		// valid tableName
 		if ((columns.size() == 0 && values.size() != coulmnNames.size())
 				|| (columns.size() != 0 && columns.size() != values.size())) {
 			throw new RuntimeException();
 		}
+		if (columns.size() == 0) {
+			columns = (ArrayList<String>) this.coulmnNames.clone();
+		}
 		if (!validateCoulmnNames(columns) || !validateDataTypes(columns, values) || !validTableName(tableName)) {
 			throw new RuntimeException();
 		}
-
-		// values may not be sorted as we write in xml.
 		ArrayList<String> row = new ArrayList<String>();
 		for (int i = 0; i < coulmnNames.size(); i++) {
 			row.add(new String(" "));
@@ -85,16 +95,12 @@ public class DataBaseControlImpl implements DataBaseControl {
 		currentTableData.add(row);
 		saveAndLoadObj.save(file, currentTableData, coulmnNames, coulmnTypes, currentTableName);
 		setWantedData(this.coulmnNames, this.currentTableData);
+		printerObj.printTable(getCoulmnNames(), getWantedData(), getTableName());
 	}
 
 	@Override
 	public void deleteFromTable(String[] conditions, String tableName) {
 		ready(tableName);
-
-		// check tableName
-		// conditions always valid from parser
-		// i added check for valid coulmnNames and coulmnTypes
-		// validate condiotn name and data type
 		if (conditions.length == 3) {
 			validCondition(conditions);
 		}
@@ -103,24 +109,28 @@ public class DataBaseControlImpl implements DataBaseControl {
 		}
 
 		ArrayList<Integer> indexes = makeConditions(conditions);
-		for (int i = 0; i < indexes.size(); i++) {
+		for (int i = indexes.size() - 1; i >= 0; i--) {
 			currentTableData.remove((int) indexes.get(i));
 		}
 		saveAndLoadObj.save(file, currentTableData, coulmnNames, coulmnTypes, currentTableName);
 		setWantedData(this.coulmnNames, this.currentTableData);
+		printerObj.printTable(getCoulmnNames(), getWantedData(), getTableName());
 	}
 
 	@Override
-	public ArrayList<ArrayList<String>> selectFromTable(ArrayList<String> column, String[] conditions,
-			String tableName) {
+	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName) {
 
+		ready(tableName);
 		if (conditions.length == 3) {
 			validCondition(conditions);
+		}
+		if (column.size() == 0) {
+			column = (ArrayList<String>) this.coulmnNames.clone();
 		}
 		if (!validateCoulmnNames(column) || !validTableName(tableName)) {
 			throw new RuntimeException();
 		}
-		ready(tableName);
+
 		ArrayList<Integer> colIndex = getColIndex(column);
 		ArrayList<Integer> indexes = makeConditions(conditions);
 		ArrayList<ArrayList<String>> selectedData = new ArrayList<ArrayList<String>>();
@@ -133,24 +143,21 @@ public class DataBaseControlImpl implements DataBaseControl {
 			selectedData.add(rowSelectedData);
 		}
 		setWantedData(column, selectedData);
-		return selectedData;
+		printerObj.printTable(getCoulmnNames(), getWantedData(), getTableName());
 	}
 
 	@Override
 	public void updateTable(ArrayList<String> columns, ArrayList<String> value, String[] conditions, String tableName) {
-
+		ready(tableName);
 		if (conditions.length == 3) {
 			validCondition(conditions);
 		}
-		// check columns
-		// check value types
-		// check tableName
-		if (!validateCoulmnNames(columns) || !validateDataTypes(columns, value) || !validTableName(tableName)) {
+
+		if ((columns.size() != value.size()) || !validateCoulmnNames(columns) || !validateDataTypes(columns, value)
+				|| !validTableName(tableName)) {
 			throw new RuntimeException();
 		}
-		ready(tableName);
 		ArrayList<Integer> indexes = makeConditions(conditions);
-		// columns may not be sorted as we write in xml.
 		for (int k = 0; k < indexes.size(); k++) {
 			ArrayList<String> row = currentTableData.get(indexes.get(k));
 			for (int i = 0; i < coulmnNames.size(); i++) {
@@ -165,6 +172,8 @@ public class DataBaseControlImpl implements DataBaseControl {
 		}
 		saveAndLoadObj.save(file, currentTableData, coulmnNames, coulmnTypes, currentTableName);
 		setWantedData(this.coulmnNames, this.currentTableData);
+		printerObj.printTable(getCoulmnNames(), getWantedData(), getTableName());
+
 	}
 
 	@Override
@@ -174,9 +183,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 		if (dataBasesFolder.exists()) {
 			String[] databaseFiles = dataBasesFolder.list();
 			for (String s : databaseFiles) {
-				System.out.println(s);
 				File file = new File(dataBasesFolder, s);
-				System.out.println(file.getAbsolutePath());
 				file.delete();
 			}
 			dataBasesFolder.delete();
@@ -209,10 +216,12 @@ public class DataBaseControlImpl implements DataBaseControl {
 		} else {
 			throw new RuntimeException();
 		}
-
 	}
 
 	private File makeFile(String dataBaseName, String tableName, String extension) {
+		if (this.currentDataBase == "" || this.currentTableName == "") {
+			throw new RuntimeException();
+		}
 		File file = new File("Data Bases");
 		String path = file.getAbsolutePath() + File.separator + dataBaseName + File.separator + tableName + extension;
 		File filee = new File(path);
@@ -230,7 +239,9 @@ public class DataBaseControlImpl implements DataBaseControl {
 			return indexes;
 		}
 		String coulmn = conditions[0];
-		int indexOfCoulmn = coulmnNames.indexOf(coulmn);
+		coulmn = coulmn.toLowerCase();
+		ArrayList<String> myCoulmnNames = toLow((ArrayList<String>) this.coulmnNames.clone());
+		int indexOfCoulmn = myCoulmnNames.indexOf(coulmn);
 		String operator = conditions[1];
 		String value = conditions[2];
 		for (int i = 0; i < currentTableData.size(); i++) {
@@ -249,11 +260,11 @@ public class DataBaseControlImpl implements DataBaseControl {
 		if (operator == "=") {
 			return data.equals(value);
 		} else if (operator == "<>" || operator == "!=") {
-			return (data != value);
+			return (!data.equals(value));
 		} else if (operator == ">") {
-			return (strings[0].equals(value));
+			return (strings[0].equals(value) && !value.equals(data));
 		} else if (operator == "<") {
-			return (strings[1].equals(value));
+			return (strings[1].equals(value) && !value.equals(data));
 		} else if (operator == ">=") {
 			return (data.equals(value) || strings[0].equals(value));
 		} else if (operator == "<=") {
@@ -263,8 +274,10 @@ public class DataBaseControlImpl implements DataBaseControl {
 	}
 
 	private boolean validateCoulmnNames(ArrayList<String> coulmnNames) {
-		for (int i = 0; i < coulmnNames.size(); i++) {
-			if (!this.coulmnNames.contains(coulmnNames.get(i))) {
+		ArrayList<String> coulmnNames1 = toLow((ArrayList<String>) coulmnNames.clone());
+		ArrayList<String> mycoulmnNames = toLow((ArrayList<String>) this.coulmnNames.clone());
+		for (int i = 0; i < coulmnNames1.size(); i++) {
+			if (!mycoulmnNames.contains(coulmnNames1.get(i))) {
 				return false;
 			}
 		}
@@ -272,14 +285,15 @@ public class DataBaseControlImpl implements DataBaseControl {
 	}
 
 	private boolean validateDataTypes(ArrayList<String> coulmnNames, ArrayList<String> coulmnValues) {
+		ArrayList<String> coulmnNames1 = toLow((ArrayList<String>) coulmnNames.clone());
+		ArrayList<String> mycoulmnNames = toLow((ArrayList<String>) this.coulmnNames.clone());
+		if (coulmnNames1.size() == 0) {
+			coulmnNames1 = (ArrayList<String>) mycoulmnNames.clone();
+		}
 		for (int i = 0; i < coulmnValues.size(); i++) {
-			// if original type os string no handle needed
-			if (coulmnTypes.get(this.coulmnNames.indexOf(coulmnNames.get(i))).equals("string")) {
+			if (coulmnTypes.get(mycoulmnNames.indexOf(coulmnNames1.get(i))).equals("varchar")) {
 				continue;
 			}
-			// original type is int ,, we need to check if the coulmnValue is
-			// int it is ok
-			// if the coulmnValue is string then it is wrong
 			else {
 				String str = coulmnValues.get(i);
 				for (int j = 0; j < str.length(); j++) {
@@ -293,15 +307,13 @@ public class DataBaseControlImpl implements DataBaseControl {
 	}
 
 	private boolean validTableName(String tableName) {
+		tableName = tableName.toLowerCase();
 		File file = new File("Data Bases");
 		File folderOfDataBase = new File(file.getAbsolutePath(), currentDataBase);
-		// System.out.println(folderOfDataBase.getAbsolutePath());
 		folderOfDataBase.mkdir();
 		String[] tables = folderOfDataBase.list();
-		// System.out.println(tables);
-		// System.out.println(folderOfDataBase.list().length);
-
 		for (int i = 0; i < tables.length; i++) {
+			tables[i] = tables[i].toLowerCase();
 			if (tables[i].indexOf(tableName) == 0) {
 				return true;
 			}
@@ -322,8 +334,10 @@ public class DataBaseControlImpl implements DataBaseControl {
 
 	private ArrayList<Integer> getColIndex(ArrayList<String> columns) {
 		ArrayList<Integer> colIndex = new ArrayList<Integer>();
+		ArrayList<String> temp1 = toLow(this.coulmnNames);
+		ArrayList<String> temp2 = toLow(columns);
 		for (int i = 0; i < columns.size(); i++) {
-			colIndex.add(coulmnNames.indexOf(columns.get(i)));
+			colIndex.add(temp1.indexOf(temp2.get(i)));
 		}
 		return colIndex;
 	}
@@ -333,6 +347,9 @@ public class DataBaseControlImpl implements DataBaseControl {
 		str1.add(conditions[0]);
 		ArrayList<String> str2 = new ArrayList<String>();
 		str2.add(conditions[2]);
+
+		str1 = toLow(str1);
+		// str2 = toLow(str2);
 		if (!validateCoulmnNames(str1) || !validateDataTypes(str1, str2)) {
 			throw new RuntimeException();
 		}
@@ -345,9 +362,26 @@ public class DataBaseControlImpl implements DataBaseControl {
 
 	public void setWantedData(ArrayList<String> coulmnNames, ArrayList<ArrayList<String>> tableData) {
 		wantedData = new ArrayList<ArrayList<String>>();
-		wantedData.add(coulmnNames);
+		wantedData.add((ArrayList<String>) this.coulmnNames.clone());
 		for (int i = 0; i < tableData.size(); i++) {
 			wantedData.add(tableData.get(i));
 		}
 	}
+
+	public ArrayList<String> getCoulmnNames() {
+		return coulmnNames;
+	}
+
+	public String getTableName() {
+		return currentTableName;
+	}
+
+	private ArrayList<String> toLow(ArrayList<String> x) {
+		ArrayList<String> x2 = (ArrayList<String>) x.clone();
+		for (int i = 0; i < x.size(); i++) {
+			x2.set(i, x2.get(i).toLowerCase());
+		}
+		return (ArrayList<String>) x2.clone();
+	}
+
 }

@@ -30,7 +30,7 @@ public class Parser implements IParser {
      * UPDATE table_name SET column1=value1,column2=value2,... WHERE
      * some_column=some_value;
      */
-    DataBaseControlImpl Dpms = new DataBaseControlImpl();
+    private DataBaseControlImpl Dpms = new DataBaseControlImpl();
 
     private void print(String str) {
 
@@ -116,6 +116,8 @@ public class Parser implements IParser {
             // database_name = ma.group(6);
             Dpms.createDataBase(ma.group(6));
 
+        }else{
+            error();
         }
 
     }
@@ -307,6 +309,9 @@ public class Parser implements IParser {
             cndition[0] = ma.group(1);
             cndition[1] = ma.group(2);
             cndition[2] = ma.group(3);
+            if(cndition[2].endsWith("'")){
+                cndition[2]=cndition[2].substring(1,cndition[2].length()-2);
+            }
         }
         return cndition;
 
@@ -335,14 +340,107 @@ public class Parser implements IParser {
     }
 
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
+       // Scanner in = new Scanner(System.in);
         Parser a = new Parser();
-        for (int i = 0; i < 5; i++) {
+        ArrayList<String>query= new ArrayList<>();
+        
+        query.add("create Database test1 ;");
+        query.add("create Database test ;");
+        query.add("create table testTable ("
+                + "id int ,name varchar, state varchar) ;");
+        query.add("create table testTable1 ("
+                + "id int ,name varchar, state varchar) ;");
+        
+        query.add("inser into testTable "
+                + "values (1, 'hendy; , 'da7e7')");
+        query.add("inser into testTable "
+                + "values (2, 'arsanuse' , 'da7e72')");
+        query.add("inser into testTable (id,name,state )"
+                + "values (3, '7osam' , 'da7e7')");
+        query.add("inser into testTable (id,name )"
+                + "values (4, 'saed' )");
+
+
+        query.add("inser into testTable1 "
+                + "values (1, 'arsanuse' , 'da7e   7(2)')");
+        query.add("inser into testTable1 (id,name,state )"
+                + "values (2, '7osam' , 'da7e   7')");
+        query.add("inser into testTable1 (id,name )"
+                + "values (3, 'saed' )");
+        query.add("inser into testTable1"
+                + "values (4, 'hendy; , 'da7e   7')");
+        
+        query.add("select * from testTable ;");
+        query.add("select name ,state from testTable ;");
+        query.add("select id ,state from testTable ;");
+        query.add("select state from testTable ;");
+      //  query.add("select * from testTable ;");
+        query.add("select name ,state from testTable where id ='2' ;");
+        query.add("select id ,state from testTable where name ='hendy' ;");
+        query.add("select state from testTable where name ='7osam' ;");
+      
+        
+
+        query.add("select * from testTable1 ;");
+        query.add("select name ,state from testTable1 ;");
+        query.add("select id ,state from testTable1 ;");
+        query.add("select state from testTable1 ;");
+       // query.add("select * from testTable1 ;");
+        query.add("select name ,state from testTable1 where id ='2' ;");
+        query.add("select id ,state from testTable1 where name ='hendy' ;");
+        query.add("select state from testTable1 where name ='7osam' ;");
+
+        query.add("update testTable set name='saeeeed',state = 'hahaha' where name ='hendy");
+        query.add("update testTable set name='saeeeed' ;");
+        
+        query.add("update testTable set name='sa3sa3',id =10 where id ='2'");
+        query.add("update testTable set name='saeeeed' where id ='4'");
+        
+        
+        query.add("update testTable1 set name='7sammmm',state = 'hahaha' where name ='hendy");
+        query.add("update testTable1 set name='7osam' ;");
+        query.add("update testTable1 set name='7oos',id =10 where id ='2'");
+        query.add("update testTable1 set name='7osam' where id ='4'");
+        
+        query.add("select name ,state from testTable1 where id ='10' ;");
+        query.add("select id ,state from testTable1 where name ='7osam' ;");
+        query.add("select state from testTable1 where name ='7oos' ;");
+      
+        query.add("select name ,state from testTable where id ='10' ;");
+        query.add("select id ,state from testTable where name ='saeed' ;");
+        query.add("select state from testTable where state ='hahaha' ;");
+        
+
+        query.add("drop table testTable1  ;");
+        /**
+         * exception 
+         */
+        query.add("select name ,state from testTable1 where id ='10' ;");
+        
+        query.add("select * from testTable ;");        
+        query.add("delete from testTable where id ='10';");
+        query.add("select * from testTable ;"); 
+        
+        query.add("drop database test1 ;");
+        /**
+         * exceptions
+         */
+        query.add("create Database test1 ;");
+        query.add("create Database test ;");
+        query.add("select * from testTable ;");
+        
+      for (String s : query)
+          a.InsertQuery(s);
+      
+        
+      
+        /*  for (int i = 0; i < 5; i++) {
             System.out.println("jjj");
             String s = in.nextLine();
             a.InsertQuery(s);
-        }
+        }*/
         //
+        a.InsertQuery("update hhh set cc='hhg' ,ggf=25,hhh='nn' Where jjj='fgg' ;");
     }
 
 }

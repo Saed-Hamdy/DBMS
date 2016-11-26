@@ -15,10 +15,10 @@ public class MainTest {
 		File dataBaseFolder = new File(dataBasesFolder.getAbsolutePath() + File.separator + dataBaseName);
 		dataBaseFolder.mkdir();
 		String tableName = "clients";
-		String path = dataBaseFolder.getAbsolutePath() + File.separator + tableName + ".xml" ;
+		String path = dataBaseFolder.getAbsolutePath() + File.separator + tableName + ".xml";
 		System.out.println(path);
 		File filee = new File(path);
-		
+
 		ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
 		ArrayList<String> row = new ArrayList<String>();
 		row.add("1");
@@ -26,7 +26,7 @@ public class MainTest {
 		row.add("12");
 		data.add(row);
 		data.add(row);
-		
+
 		ArrayList<String> coulmnNames = new ArrayList<String>();
 		coulmnNames.add("ID");
 		coulmnNames.add("Name");
@@ -35,7 +35,7 @@ public class MainTest {
 		coulmnTypes.add("int");
 		coulmnTypes.add("string");
 		coulmnTypes.add("int");
-		saveTest.save(filee, data, coulmnNames, coulmnTypes,tableName);
+		saveTest.save(filee, data, coulmnNames, coulmnTypes, tableName);
 	}
 
 }
