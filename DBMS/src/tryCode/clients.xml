@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE clients SYSTEM "clients.dtd">
+<clients coulmn0="ID:int" coulmn1="Name:varchar" coulmn2="Age:int" sizeCol="3" sizeRow="2">
+</clients>

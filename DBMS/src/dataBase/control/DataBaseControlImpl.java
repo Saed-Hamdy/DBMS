@@ -143,7 +143,9 @@ public class DataBaseControlImpl implements DataBaseControl {
 			selectedData.add(rowSelectedData);
 		}
 		setWantedData(column, selectedData);
-		printerObj.printTable(getCoulmnNames(), getWantedData(), getTableName());
+		ArrayList<ArrayList<String>> dataToPrint = getWantedData();
+		dataToPrint.set(0, column);
+		printerObj.printTable(column, dataToPrint, getTableName());
 	}
 
 	@Override
@@ -208,13 +210,15 @@ public class DataBaseControlImpl implements DataBaseControl {
 
 	@Override
 	public void changeDataBase(String newDataBaseName) {
-		File x = new File("Data Bases");
-		File dataBaseFolder = new File(x.getAbsoluteFile(), newDataBaseName);
-		if (dataBaseFolder.exists()) {
-			currentDataBase = newDataBaseName;
-			wantedData = new ArrayList<ArrayList<String>>();
-		} else {
-			throw new RuntimeException();
+		if (newDataBaseName.length() != 0) {
+			File x = new File("Data Bases");
+			File dataBaseFolder = new File(x.getAbsoluteFile(), newDataBaseName);
+			if (dataBaseFolder.exists()) {
+				currentDataBase = newDataBaseName;
+				wantedData = new ArrayList<ArrayList<String>>();
+			} else {
+				throw new RuntimeException();
+			}
 		}
 	}
 
@@ -232,7 +236,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 		ArrayList<Integer> indexes = new ArrayList<Integer>();
 
 		// handle if no conditions is existing then retun all the rows
-		if (conditions.length == 0) {
+		if (conditions.length != 3) {
 			for (int i = 0; i < currentTableData.size(); i++) {
 				indexes.add(i);
 			}
@@ -257,17 +261,17 @@ public class DataBaseControlImpl implements DataBaseControl {
 		strings[0] = data;
 		strings[1] = value;
 		Arrays.sort(strings);
-		if (operator == "=") {
+		if (operator.equals("=")) {
 			return data.equals(value);
-		} else if (operator == "<>" || operator == "!=") {
+		} else if (operator.equals("<>")) {
 			return (!data.equals(value));
-		} else if (operator == ">") {
+		} else if (operator.equals(">")) {
 			return (strings[0].equals(value) && !value.equals(data));
-		} else if (operator == "<") {
+		} else if (operator.equals("<")) {
 			return (strings[1].equals(value) && !value.equals(data));
-		} else if (operator == ">=") {
+		} else if (operator.equals(">=")) {
 			return (data.equals(value) || strings[0].equals(value));
-		} else if (operator == "<=") {
+		} else if (operator.equals("<=")) {
 			return (data.equals(value) || strings[1].equals(value));
 		}
 		return false;
@@ -293,8 +297,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 		for (int i = 0; i < coulmnValues.size(); i++) {
 			if (coulmnTypes.get(mycoulmnNames.indexOf(coulmnNames1.get(i))).equals("varchar")) {
 				continue;
-			}
-			else {
+			} else {
 				String str = coulmnValues.get(i);
 				for (int j = 0; j < str.length(); j++) {
 					if (!Character.isDigit(str.charAt(j))) {

@@ -99,4 +99,5 @@ public interface DataBaseControl {
 	 * @return table name.
 	 */
 	public String getTableName();
+	
 }

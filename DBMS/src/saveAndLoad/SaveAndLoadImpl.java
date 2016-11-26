@@ -88,9 +88,9 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			coulmnNames = (ArrayList<String>) colName.clone();
 
 			Element docElements = document.getDocumentElement();
+			NodeList data = docElements.getElementsByTagName("row");
 			for (int j = 0; j < sizeRow; j++) {
-				NodeList data = docElements.getElementsByTagName("row" + j);
-				Node node = data.item(0);
+				Node node = data.item(j);
 				Element element = (Element) node;
 				tableData.add(toArrayList(element, colName));
 			}
@@ -103,7 +103,8 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 	}
 
 	private Element getElement(Document document, ArrayList<String> row, int id, ArrayList<String> coulmnNames) {
-		Element rowElement = document.createElement("row" + id);
+		Element rowElement = document.createElement("row");
+		rowElement.setAttribute("id", "" + id);
 		for (int i = 0; i < row.size(); i++) {
 			Element cellElement = document.createElement(coulmnNames.get(i));
 			cellElement.appendChild(document.createTextNode(row.get(i)));
@@ -156,7 +157,9 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		try {
 			File file = new File(path, "" + tableName + ".dtd");
 			PrintWriter writer = new PrintWriter(file, "UTF-8");
-			String data = "<!ELEMENT " + tableName + " (";
+			String data = "<!ELEMENT " + tableName + " (row*)>";//* zero or more.
+			writer.println(data);
+			data = "<!ELEMENT row (";
 			for (int i = 0; i < colName.size(); i++) {
 				data += colName.get(i) + ",";
 			}
@@ -167,6 +170,17 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 				data = "<!ELEMENT " + colName.get(i) + " (#PCDATA)>";
 				writer.println(data);
 			}
+			writer.println();
+			data = new String();
+			for (int i = 0; i < colName.size(); i++) {
+				data = "<!ATTLIST students coulmn" + i + " CDATA #REQUIRED >";
+				writer.println(data);
+			}
+			writer.println("<!ATTLIST students sizeCol CDATA #REQUIRED >");
+			writer.println("<!ATTLIST students sizeRow CDATA #REQUIRED >");
+			writer.println();
+			writer.println("<!ATTLIST row id CDATA #REQUIRED >");
+			
 			writer.close();
 		} catch (Exception e) {
 			// do something
@@ -181,9 +195,6 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		fileName += ".dtd";
 		String path = file.getPath();
 		path = file.getParent();
-		// to handle if not windows
-		//path = path.substring(0, path.lastIndexOf("\\"));
-
 		file = new File(path, fileName);
 		ArrayList<String> colNames = new ArrayList<String>();
 		try {
@@ -191,10 +202,10 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
 			BufferedReader br = new BufferedReader(isr);
 			try {
+				br.readLine();
 				String firstLine = br.readLine();
 				// 15 & -2 to get rid of the unwanted characters
-				
-				firstLine = firstLine.substring(12 + tableName.length(), firstLine.length() - 2);
+				firstLine = firstLine.substring(15, firstLine.length() - 2);
 				int first = 0;
 				for (int i = 0; i < firstLine.length(); i++) {
 					if (firstLine.charAt(i) == ',') {
