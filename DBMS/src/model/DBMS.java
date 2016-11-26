@@ -118,8 +118,8 @@ public class DBMS {
 		row.add("ID");
 		row.add("Name");
 		data.add(0, row);
-		//just for test
-		
+		// just for test
+
 		table.setModel(setData(data));
 		scrollPane.setViewportView(table);
 	}

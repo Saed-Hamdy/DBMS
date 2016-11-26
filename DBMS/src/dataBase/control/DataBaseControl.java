@@ -4,18 +4,6 @@ import java.util.ArrayList;
 
 public interface DataBaseControl {
 
-	// arsanuos
-	// create database OK
-	// insertIntoTable OK
-	// seletctFromTable
-	// drop table OK
-	// drop database OK
-
-	// amr
-	// create table
-	// deleteFromTable
-	// updateTable
-	// changeDataBase OK
 	/**
 	 * create new data base
 	 * 
@@ -60,7 +48,8 @@ public interface DataBaseControl {
 	 *            operations mean > < =
 	 * @param tableName
 	 */
-	public ArrayList<ArrayList<String>> selectFromTable(ArrayList<String> column, String[] conditions,
+
+	public void selectFromTable(ArrayList<String> column, String[] conditions,
 			String tableName);
 
 	/**
@@ -80,7 +69,7 @@ public interface DataBaseControl {
 	public void dropDataBase(String dataBaseName);
 
 	/**
-	 * delete dataBase.
+	 * delete table.
 	 * 
 	 * @param tableName
 	 */
@@ -89,9 +78,25 @@ public interface DataBaseControl {
 	/**
 	 * change dataBase name.
 	 * 
-	 * @param newDataBaseName
+	 * @param newDataBaseName.
 	 */
 	public void changeDataBase(String newDataBaseName);
-	
+
+	/**
+	 * 
+	 * @return the wanted data to print out.
+	 */
 	public ArrayList<ArrayList<String>> getWantedData();
+
+	/**
+	 * 
+	 * @return the column Names of the wanted data.
+	 */
+	public ArrayList<String> getCoulmnNames();
+
+	/**
+	 * 
+	 * @return table name.
+	 */
+	public String getTableName();
 }
