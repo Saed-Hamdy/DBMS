@@ -109,7 +109,7 @@ public class Parser implements IParser {
         }
         if (error) {
             error = false;
-            //throw new SQLException("SQL syntax error");
+            // throw new SQLException("SQL syntax error");
         }
     }
 
@@ -255,11 +255,10 @@ public class Parser implements IParser {
                 + "(\\s+(?i)order\\s+(?i)by\\s+(\\w+)(\\s+((?i)asc|(?i)desc))?)?\\s*;?\\s*$";
         Pattern pat = Pattern.compile(selectPattern);
         Matcher ma = pat.matcher(query);
-        if (!ma.find()){
+        if (!ma.find()) {
             error();
             return;
-        }
-        else {
+        } else {
             colomsName = new ArrayList<String>(Arrays.asList(ma.group(2).replaceAll("\\s+", "").split(",")));
             tableName = ma.group(10);
             String[] wherecondition = Where(ma.group(13));
@@ -268,8 +267,9 @@ public class Parser implements IParser {
             if (ma.group(20) != null && ma.group(22) != null) {
                 order = ma.group(22).trim();
                 Dpms.selectFromTable(colomsName, wherecondition, tableName, ma.group(21), order);
+            } else {
+                Dpms.selectFromTable(colomsName, wherecondition, tableName, null, null);
             }
-            Dpms.selectFromTable(colomsName, wherecondition, tableName, null, null);
         }
     }
 
@@ -341,29 +341,33 @@ public class Parser implements IParser {
     }
 
     public static void main(String[] args) {
-//        String selectPattern = "^\\s*((?i)select\\s+)"
-//                + "((\\*\\s*)|((\\s*(\\w+)\\s*,)*(\\s*(\\w+)\\s+)))\\s*((?i)from\\s+)(\\w+)"
-//                + "(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?"
-//                + "(\\s+(?i)order\\s+by\\s+(\\w+)(\\s+((?i)asc|(?i)desc))?)?\\s*;?\\s*$";
-//
-//        Pattern pat = Pattern.compile(selectPattern);
-//        Matcher ma = pat.matcher("select name ,state from testTable1 where id ='2' order by irkif desc;");
-//        //System.out.println(ma.matches());
-//        System.out.println(ma.find());
-//        System.out.println(ma.matches());
-//        
-// for(int i=15;i<24;i++){
-//     System.out.println(i+"  "+ma.group(i));
-//     
-// }
-// System.out.println(ma.group(20)==null);
-// 
-// if (ma.group(20)!=null){
-//     String order="asc";
-//     if(ma.group(22)!=null)
-//         order=ma.group(22).trim();
-//     
-// }
+        // String selectPattern = "^\\s*((?i)select\\s+)"
+        // +
+        // "((\\*\\s*)|((\\s*(\\w+)\\s*,)*(\\s*(\\w+)\\s+)))\\s*((?i)from\\s+)(\\w+)"
+        // +
+        // "(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?"
+        // +
+        // "(\\s+(?i)order\\s+by\\s+(\\w+)(\\s+((?i)asc|(?i)desc))?)?\\s*;?\\s*$";
+        //
+        // Pattern pat = Pattern.compile(selectPattern);
+        // Matcher ma = pat.matcher("select name ,state from testTable1 where id
+        // ='2' order by irkif desc;");
+        // //System.out.println(ma.matches());
+        // System.out.println(ma.find());
+        // System.out.println(ma.matches());
+        //
+        // for(int i=15;i<24;i++){
+        // System.out.println(i+" "+ma.group(i));
+        //
+        // }
+        // System.out.println(ma.group(20)==null);
+        //
+        // if (ma.group(20)!=null){
+        // String order="asc";
+        // if(ma.group(22)!=null)
+        // order=ma.group(22).trim();
+        //
+        // }
         // Scanner in = new Scanner(System.in);
         Parser a = new Parser();
         // a.InsertQuery("select name ,state from testTable1 where id ='2' ;");
@@ -380,27 +384,32 @@ public class Parser implements IParser {
         query.add("create table testTable (" + "id int ,name varchar, state varchar) ;");
         query.add("create table testTable1 (" + "id int ,name varchar, state varchar) ;");
 
-        query.add("insert into testTable " + "values (1, 'hendy' , 'da7e7')");
-        query.add("insert into testTable " + "values (2, 'arsanuse' , 'da7e72')");
-        query.add("insert into testTable (id,name,state )" + "values (3, '7osam' , 'da7e7')");
-        query.add("insert into testTable (id,name )" + "values (4, 'saed' )");
+        // query.add("insert into testTable " + "values (1, 'hendy' ,
+        // 'da7e7')");
+        // query.add("insert into testTable " + "values (2, 'arsanuse' ,
+        // 'da7e72')");
+        // query.add("insert into testTable (id,name,state )" + "values (3,
+        // '7osam' , 'da7e7')");
+        // query.add("insert into testTable (id,name )" + "values (4, 'saed'
+        // )");
 
         query.add("insert into testTable1 " + "values (1, 'arsanuse' , 'da7e   7(2)')");
         query.add("insert into testTable1 (id,name,state )" + "values (2, '7osam' , 'da7e   7')");
         query.add("insert into testTable1 (id,name )" + "values (3, 'saed' )");
         query.add("insert into testTable1 " + "values (4, 'hendy' , 'da7e   7')");
 
-        query.add("select * from testTable ;");
-        query.add("select name ,state from testTable ;");
-        query.add("select id ,state from testTable ;");
-        query.add("select state from testTable ;");
         // query.add("select * from testTable ;");
+        // query.add("select name ,state from testTable ;");
+        // query.add("select id ,state from testTable ;");
+        // query.add("select state from testTable ;");
+        // // query.add("select * from testTable ;");
+        //
+        // query.add("select name ,state from testTable where id ='2' ;");
+        // query.add("select id ,state from testTable where name ='hendy' ;");
+        // query.add("select state from testTable where name ='7osam' ;");
 
-        query.add("select name ,state from testTable where id ='2' ;");
-        query.add("select id ,state from testTable where name ='hendy' ;");
-        query.add("select state from testTable where name ='7osam' ;");
-
-        query.add("select * from testTable1 ;");
+        query.add("select * from testTable1 order by id desc;");
+        query.add("select * from testTable1 order by id asc;");
         query.add("select name ,state from testTable1 ;");
         query.add("select id ,state from testTable1 ;");
         query.add("select state from testTable1 ;");
@@ -441,12 +450,12 @@ public class Parser implements IParser {
         query.add("drop database test1 ;");
         query.add("select * from testTable ;");
         query.add("select state,id from testTable where id>0 ;");
-        
+
         /**
          * exceptions
          */
         query.add("create Database test1 ;");
-        //query.add("create Database test ;");
+        // query.add("create Database test ;");
         query.add("select * from testTable ;");
         Scanner in = new Scanner(System.in);
         for (String s : query) {
@@ -458,10 +467,10 @@ public class Parser implements IParser {
                 System.out.println(e.getMessage());
                 // TODO: handle exception
             }
-            
+
         }
-      
-    //    a.InsertQuery("select name ,state from testTable where id >'2' ");
+
+        // a.InsertQuery("select name ,state from testTable where id >'2' ");
 
         /*
          * for (int i = 0; i < 5; i++) { System.out.println("jjj"); String s =

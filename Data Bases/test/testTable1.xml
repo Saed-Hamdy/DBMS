@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE testTable1 SYSTEM "testTable1.dtd">
+<testTable1 coulmn0="id:int" coulmn1="name:varchar" coulmn2="state:varchar" sizeCol="3" sizeRow="4">
+<row id="0">
+<id>1</id>
+<name>arsanuse</name>
+<state>da7e   7(2)</state>
+</row>
+<row id="1">
+<id>2</id>
+<name>7osam</name>
+<state>da7e   7</state>
+</row>
+<row id="2">
+<id>3</id>
+<name>saed</name>
+<state> </state>
+</row>
+<row id="3">
+<id>4</id>
+<name>hendy</name>
+<state>da7e   7</state>
+</row>
+</testTable1>

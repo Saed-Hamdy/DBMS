@@ -1,0 +1,13 @@
+<!ELEMENT testTable1 (row*)>
+<!ELEMENT row (id,name,state)>
+<!ELEMENT id (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT state (#PCDATA)>
+
+<!ATTLIST students coulmn0 CDATA #REQUIRED >
+<!ATTLIST students coulmn1 CDATA #REQUIRED >
+<!ATTLIST students coulmn2 CDATA #REQUIRED >
+<!ATTLIST students sizeCol CDATA #REQUIRED >
+<!ATTLIST students sizeRow CDATA #REQUIRED >
+
+<!ATTLIST row id CDATA #REQUIRED >
