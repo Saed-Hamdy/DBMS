@@ -7,12 +7,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
+import dbms.parser.Parser;
 import model.Printer;
 import model.PrinterIF;
 import xml.saveAndLoad.SaveAndLoad;
 import xml.saveAndLoad.SaveAndLoadImpl;
 
-public class DataBaseControlImpl implements DataBaseControl{
+public class DataBaseControlImpl implements DataBaseControl {
 	String currentDataBase, currentTableName;
 	ArrayList<ArrayList<String>> currentTableData, wantedData;
 	ArrayList<String> coulmnNames, coulmnTypes;
@@ -20,8 +21,9 @@ public class DataBaseControlImpl implements DataBaseControl{
 	File file;
 	PrinterIF printerObj;
 	
+	private static DataBaseControlImpl instanceDataBaseControlImpl; 
 	
-	public DataBaseControlImpl() {
+	private DataBaseControlImpl() {
 		currentDataBase = "";
 		currentTableName = "";
 		currentTableData = new ArrayList<ArrayList<String>>();
@@ -29,7 +31,7 @@ public class DataBaseControlImpl implements DataBaseControl{
 		coulmnTypes = new ArrayList<String>();
 		saveAndLoadObj = new SaveAndLoadImpl();
 		wantedData = new ArrayList<ArrayList<String>>();
-		printerObj = new Printer();
+		printerObj = Printer.getInstance();
 	}
 
 	@Override
@@ -41,7 +43,7 @@ public class DataBaseControlImpl implements DataBaseControl{
 				currentDataBase = "";
 				throw new RuntimeException("Can't Create This Data Base as This Name is already exisitng");
 			} else {
-				newDataBase.mkdir();
+				newDataBase.mkdirs();
 				wantedData = new ArrayList<ArrayList<String>>();
 				currentDataBase = dataBaseName;
 				coulmnNames = new ArrayList<String>();
@@ -88,7 +90,7 @@ public class DataBaseControlImpl implements DataBaseControl{
 		}
 		for (int i = 0; i < coulmnNames.size(); i++) {
 			for (int j = 0; j < columns.size(); j++) {
-				if (coulmnNames.get(i).equals(columns.get(j))) {
+				if (coulmnNames.get(i).equalsIgnoreCase(columns.get(j))) {
 					row.set(i, values.get(j));
 					break;
 				} else {
@@ -122,7 +124,8 @@ public class DataBaseControlImpl implements DataBaseControl{
 	}
 
 	@Override
-	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName, String coulmnOrder, String order) {
+	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName, String coulmnOrder,
+			String order) {
 
 		ready(tableName);
 		if (conditions.length == 3) {
@@ -134,22 +137,22 @@ public class DataBaseControlImpl implements DataBaseControl{
 		if (!validateCoulmnNames(column) || !validTableName(tableName)) {
 			throw new RuntimeException("Invalid Parameters In The SQL Command when executing Select");
 		}
-		if(coulmnOrder != null && order != null){
+		if (coulmnOrder != null && order != null) {
 			ArrayList<String> col = new ArrayList<String>();
 			col.add(coulmnOrder);
-			if(!validateCoulmnNames(col)){
+			if (!validateCoulmnNames(col)) {
 				throw new RuntimeException("Invalid Parameters In The SQL Command when executing Select with order");
 			}
 		}
 
 		ArrayList<Integer> colIndex = getColIndex(column);
 		ArrayList<Integer> indexes = makeConditions(conditions);
-		//to make order
-		if(order!=null){
+		// to make order
+		if (order != null) {
 			ArrayList<String> strr = new ArrayList<String>();
 			strr.add(coulmnOrder);
 			Integer indexx = getColIndex(strr).get(0);
-			indexes = (ArrayList<Integer>)makeOrder(indexes, indexx, order).clone();
+			indexes = (ArrayList<Integer>) makeOrder(indexes, indexx, order).clone();
 		}
 		ArrayList<ArrayList<String>> selectedData = new ArrayList<ArrayList<String>>();
 		for (int i = 0; i < indexes.size(); i++) {
@@ -161,7 +164,8 @@ public class DataBaseControlImpl implements DataBaseControl{
 			selectedData.add(rowSelectedData);
 		}
 		column.clear();
-		for(int i=0;i<colIndex.size();i++)column.add(i, this.coulmnNames.get(colIndex.get(i)));
+		for (int i = 0; i < colIndex.size(); i++)
+			column.add(i, this.coulmnNames.get(colIndex.get(i)));
 		setWantedData(column, selectedData);
 		printerObj.printTable(column, getWantedData(), getTableName());
 	}
@@ -182,7 +186,7 @@ public class DataBaseControlImpl implements DataBaseControl{
 			ArrayList<String> row = currentTableData.get(indexes.get(k));
 			for (int i = 0; i < coulmnNames.size(); i++) {
 				for (int j = 0; j < columns.size(); j++) {
-					if (coulmnNames.get(i).equals(columns.get(j))) {
+					if (coulmnNames.get(i).equalsIgnoreCase(columns.get(j))) {
 						row.set(i, value.get(j));
 						break;
 					}
@@ -381,7 +385,7 @@ public class DataBaseControlImpl implements DataBaseControl{
 
 	public void setWantedData(ArrayList<String> coulmnNames, ArrayList<ArrayList<String>> tableData) {
 		wantedData = new ArrayList<ArrayList<String>>();
-		wantedData.add((ArrayList<String>)coulmnNames.clone());
+		wantedData.add((ArrayList<String>) coulmnNames.clone());
 		for (int i = 0; i < tableData.size(); i++) {
 			wantedData.add(tableData.get(i));
 		}
@@ -403,24 +407,24 @@ public class DataBaseControlImpl implements DataBaseControl{
 		return (ArrayList<String>) x2.clone();
 	}
 
-	private ArrayList<Integer> makeOrder(ArrayList<Integer> rowIndex, int orderCoulmnIndex, String order){
+	private ArrayList<Integer> makeOrder(ArrayList<Integer> rowIndex, int orderCoulmnIndex, String order) {
 		ArrayList<Integer> newRowIndex = new ArrayList<Integer>();
 		ArrayList<String> oldData = new ArrayList<String>();
-		for(int i=0;i<rowIndex.size();i++){
+		for (int i = 0; i < rowIndex.size(); i++) {
 			oldData.add(this.currentTableData.get(i).get(orderCoulmnIndex));
 		}
 		ArrayList<String> orderedData = new ArrayList<String>();
-		orderedData = (ArrayList<String>)oldData.clone();
-		if(order.equalsIgnoreCase("ASC")){
+		orderedData = (ArrayList<String>) oldData.clone();
+		if (order.equalsIgnoreCase("ASC")) {
 			Collections.sort(orderedData, new StringComparator());
-		}
-		else{
+		} else {
 			Collections.sort(orderedData, new StringComparatorDesc());
 		}
-		for(int i=0;i<orderedData.size();i++){
-			for(int j=0;j<oldData.size();j++){
-				if(oldData.get(j)==null)continue;
-				if(orderedData.get(i).equals(oldData.get(j))){
+		for (int i = 0; i < orderedData.size(); i++) {
+			for (int j = 0; j < oldData.size(); j++) {
+				if (oldData.get(j) == null)
+					continue;
+				if (orderedData.get(i).equals(oldData.get(j))) {
 					newRowIndex.add(j);
 					oldData.set(j, null);
 					break;
@@ -429,40 +433,47 @@ public class DataBaseControlImpl implements DataBaseControl{
 		}
 		return newRowIndex;
 	}
+	
+	public static DataBaseControlImpl getInstance(){
+		if(instanceDataBaseControlImpl == null){
+			instanceDataBaseControlImpl = new DataBaseControlImpl();
+		}
+		return instanceDataBaseControlImpl;
+	}
 
 }
 
-//ASC order
-class StringComparator implements Comparator<String>{
-	
+// ASC order
+class StringComparator implements Comparator<String> {
+
 	@Override
 	public int compare(String arg0, String arg1) {
-		if(arg0.equals(arg1))return 0;
-		else if(((String)arg0).length() != ((String)arg1).length()){
-			return ((String)arg0).length() - ((String)arg1).length() ;
-		}
-		else{
+		if (arg0.equals(arg1))
+			return 0;
+		else if (((String) arg0).length() != ((String) arg1).length()) {
+			return ((String) arg0).length() - ((String) arg1).length();
+		} else {
 			String[] str = new String[2];
-			str[0] = (String)arg0;
-			str[1] = (String)arg1;
+			str[0] = (String) arg0;
+			str[1] = (String) arg1;
 			Arrays.sort(str);
 			return (str[1].equals(arg0) ? 1 : -1);
 		}
 	}
 }
 
-class StringComparatorDesc implements Comparator<String>{
+class StringComparatorDesc implements Comparator<String> {
 
 	@Override
 	public int compare(String arg0, String arg1) {
-		if(arg0.equals(arg1))return 0;
-		else if(((String)arg0).length() != ((String)arg1).length()){
-			return ((String)arg1).length() - ((String)arg0).length() ;
-		}
-		else{
+		if (arg0.equals(arg1))
+			return 0;
+		else if (((String) arg0).length() != ((String) arg1).length()) {
+			return ((String) arg1).length() - ((String) arg0).length();
+		} else {
 			String[] str = new String[2];
-			str[0] = (String)arg0;
-			str[1] = (String)arg1;
+			str[0] = (String) arg0;
+			str[1] = (String) arg1;
 			Arrays.sort(str);
 			return (str[1].equals(arg1) ? 1 : -1);
 		}

@@ -42,25 +42,23 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			rootElement.setAttribute("sizeCol", coulmnNames.size() + "");
 			makeTypesAttributes(rootElement, coulmnNames, coulmnTypes);
 			document.appendChild(rootElement);
-
 			for (int i = 0; i < data.size(); i++) {
 				ArrayList<String> row = data.get(i);
 				Element rowElement = getElement(document, row, i, coulmnNames);
 				rootElement.appendChild(rowElement);
 			}
 
-			// xml file will be written on console
+			// XML file will be written on console
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, tableName + ".dtd");
 
-			// to make xml file on Hard
+			// To make XML File on Hard
 			DOMSource source = new DOMSource(document);
 			StreamResult resultFile = new StreamResult(file);
-
 			transformer.transform(source, resultFile);
 
-			// save .dtd
+			// Save .dtd
 			saveDTD(coulmnNames, tableName, file.getAbsolutePath());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -73,12 +71,9 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		ArrayList<ArrayList<String>> tableData = new ArrayList<ArrayList<String>>();
 		try {
-
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			document = documentBuilder.parse(file);
-
 			Element tableName = document.getDocumentElement();
-
 			String sizeAtt = tableName.getAttribute("sizeRow");
 			int sizeRow = Integer.parseInt(sizeAtt);
 			sizeAtt = tableName.getAttribute("sizeCol");
@@ -86,7 +81,6 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			coulmnTypes = (ArrayList<String>) FindTypesAttributes(tableName, sizeCol).clone();
 			ArrayList<String> colName = loadDTD(file);
 			coulmnNames = (ArrayList<String>) colName.clone();
-
 			Element docElements = document.getDocumentElement();
 			NodeList data = docElements.getElementsByTagName("row");
 			for (int j = 0; j < sizeRow; j++) {
@@ -98,7 +92,6 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		return tableData;
 	}
 
@@ -157,7 +150,8 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 		try {
 			File file = new File(path, "" + tableName + ".dtd");
 			PrintWriter writer = new PrintWriter(file, "UTF-8");
-			String data = "<!ELEMENT " + tableName + " (row*)>";//* zero or more.
+			// * zer0 or more.
+			String data = "<!ELEMENT " + tableName + " (row*)>";
 			writer.println(data);
 			data = "<!ELEMENT row (";
 			for (int i = 0; i < colName.size(); i++) {
@@ -180,7 +174,7 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 			writer.println("<!ATTLIST students sizeRow CDATA #REQUIRED >");
 			writer.println();
 			writer.println("<!ATTLIST row id CDATA #REQUIRED >");
-			
+
 			writer.close();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -217,7 +211,6 @@ public class SaveAndLoadImpl implements SaveAndLoad {
 				isr.close();
 				br.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 

@@ -49,8 +49,8 @@ public interface DataBaseControl {
 	 * @param tableName
 	 */
 
-	public void selectFromTable(ArrayList<String> column, String[] conditions,
-            String tableName, String coulmnOrder, String order);
+	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName, String coulmnOrder,
+			String order);
 
 	/**
 	 * update a specific row in table
@@ -99,5 +99,5 @@ public interface DataBaseControl {
 	 * @return table name.
 	 */
 	public String getTableName();
-	
+
 }

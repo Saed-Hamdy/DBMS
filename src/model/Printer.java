@@ -2,44 +2,18 @@ package model;
 
 import java.util.ArrayList;
 
+import dbms.parser.Parser;
+
 public class Printer implements PrinterIF {
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
-		ArrayList<String> row = new ArrayList<String>();
-		row.add("1");
-		row.add("Amr");
-		row.add("SaveAndLoad");
-		data.add((ArrayList<String>) row.clone());
-		row.clear();
-		row.add("2");
-		row.add("Hossam");
-		row.add("Parser");
-		data.add((ArrayList<String>) row.clone());
-		row.clear();
-
-		row.add("3");
-		row.add("Saeed");
-		row.add("Parser");
-		data.add((ArrayList<String>) row.clone());
-		row.clear();
-
-		row.add("4");
-		row.add("Arsanuos");
-		data.add((ArrayList<String>) row.clone());
-		row.clear();
-
-		row.add("ID");
-		row.add("Name");
-		row.add("Role");
-		Printer x = new Printer();
-		x.printTable(row, data, "OOP team");
+	
+	private static Printer instancePrinter;
+	
+	private Printer() {
+		
 	}
-
+	
 	@Override
 	public void printTable(ArrayList<String> columnNames, ArrayList<ArrayList<String>> data, String tableName) {
-		// TODO Auto-generated method stub
 		if (tableName == null)
 			return;
 		System.out.println(tableName + ":");
@@ -95,6 +69,13 @@ public class Printer implements PrinterIF {
 			}
 		}
 		System.out.println();
+	}
+	
+	public static Printer getInstance(){
+		if(instancePrinter == null){
+			instancePrinter = new Printer();
+		}
+		return instancePrinter;
 	}
 
 }
