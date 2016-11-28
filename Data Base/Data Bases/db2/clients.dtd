@@ -1,0 +1,11 @@
+<!ELEMENT clients (row*)>
+<!ELEMENT row (ID,Name)>
+<!ELEMENT ID (#PCDATA)>
+<!ELEMENT Name (#PCDATA)>
+
+<!ATTLIST students coulmn0 CDATA #REQUIRED >
+<!ATTLIST students coulmn1 CDATA #REQUIRED >
+<!ATTLIST students sizeCol CDATA #REQUIRED >
+<!ATTLIST students sizeRow CDATA #REQUIRED >
+
+<!ATTLIST row id CDATA #REQUIRED >
