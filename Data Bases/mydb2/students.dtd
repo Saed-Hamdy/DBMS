@@ -1,0 +1,4 @@
+<!ELEMENT students (ID,Name,Age)>
+<!ELEMENT ID (#PCDATA)>
+<!ELEMENT Name (#PCDATA)>
+<!ELEMENT Age (#PCDATA)>

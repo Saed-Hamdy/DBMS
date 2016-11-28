@@ -3,20 +3,22 @@ package dataBase.control;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import model.Printer;
 import model.PrinterIF;
-import saveAndLoad.SaveAndLoad;
-import saveAndLoad.SaveAndLoadImpl;
+import xml.saveAndLoad.SaveAndLoad;
+import xml.saveAndLoad.SaveAndLoadImpl;
 
-public class DataBaseControlImpl implements DataBaseControl {
+public class DataBaseControlImpl implements DataBaseControl{
 	String currentDataBase, currentTableName;
 	ArrayList<ArrayList<String>> currentTableData, wantedData;
 	ArrayList<String> coulmnNames, coulmnTypes;
 	SaveAndLoad saveAndLoadObj;
 	File file;
 	PrinterIF printerObj;
-
+	
+	
 	public DataBaseControlImpl() {
 		currentDataBase = "";
 		currentTableName = "";
@@ -35,7 +37,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 			File newDataBase = new File(x.getAbsolutePath(), dataBaseName);
 			if (newDataBase.exists()) {
 				currentDataBase = "";
-				throw new RuntimeException();
+				throw new RuntimeException("Can't Create This Data Base as This Name is already exisitng");
 			} else {
 				newDataBase.mkdir();
 				wantedData = new ArrayList<ArrayList<String>>();
@@ -53,7 +55,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 		File file = makeFile(currentDataBase, tableName, ".xml");
 		if (file.exists()) {
 			currentTableName = "";
-			throw new RuntimeException();
+			throw new RuntimeException("Can't Create This Table as This Name is already exisitng");
 		} else {
 			this.coulmnNames = columnNames;
 			this.currentTableName = tableName;
@@ -70,13 +72,13 @@ public class DataBaseControlImpl implements DataBaseControl {
 		ready(tableName);
 		if ((columns.size() == 0 && values.size() != coulmnNames.size())
 				|| (columns.size() != 0 && columns.size() != values.size())) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Parameters In The SQL Command");
 		}
 		if (columns.size() == 0) {
 			columns = (ArrayList<String>) this.coulmnNames.clone();
 		}
 		if (!validateCoulmnNames(columns) || !validateDataTypes(columns, values) || !validTableName(tableName)) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Parameters In The SQL Command when executing Insert");
 		}
 		ArrayList<String> row = new ArrayList<String>();
 		for (int i = 0; i < coulmnNames.size(); i++) {
@@ -105,7 +107,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 			validCondition(conditions);
 		}
 		if (!validTableName(tableName)) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Parameters In The SQL Command when executing Delete");
 		}
 
 		ArrayList<Integer> indexes = makeConditions(conditions);
@@ -118,7 +120,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 	}
 
 	@Override
-	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName) {
+	public void selectFromTable(ArrayList<String> column, String[] conditions, String tableName,String colomnTOorder,String order) {
 
 		ready(tableName);
 		if (conditions.length == 3) {
@@ -128,7 +130,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 			column = (ArrayList<String>) this.coulmnNames.clone();
 		}
 		if (!validateCoulmnNames(column) || !validTableName(tableName)) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Parameters In The SQL Command when executing Select");
 		}
 
 		ArrayList<Integer> colIndex = getColIndex(column);
@@ -143,9 +145,9 @@ public class DataBaseControlImpl implements DataBaseControl {
 			selectedData.add(rowSelectedData);
 		}
 		setWantedData(column, selectedData);
-		ArrayList<ArrayList<String>>dataToPrint=getWantedData();
+		ArrayList<ArrayList<String>> dataToPrint = getWantedData();
 		dataToPrint.set(0, column);
-		printerObj.printTable(column,dataToPrint, getTableName());
+		printerObj.printTable(column, dataToPrint, getTableName());
 	}
 
 	@Override
@@ -157,7 +159,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 
 		if ((columns.size() != value.size()) || !validateCoulmnNames(columns) || !validateDataTypes(columns, value)
 				|| !validTableName(tableName)) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Parameters In The SQL Command when executing Update");
 		}
 		ArrayList<Integer> indexes = makeConditions(conditions);
 		for (int k = 0; k < indexes.size(); k++) {
@@ -191,7 +193,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 			dataBasesFolder.delete();
 			wantedData = new ArrayList<ArrayList<String>>();
 		} else {
-			throw new RuntimeException();
+			throw new RuntimeException("This Data Base is not exisitng to be dropped");
 		}
 	}
 
@@ -204,25 +206,27 @@ public class DataBaseControlImpl implements DataBaseControl {
 			schema.delete();
 			wantedData = new ArrayList<ArrayList<String>>();
 		} catch (Exception e) {
-			throw new RuntimeException();
+			throw new RuntimeException("This Table is not exisitng to be dropped");
 		}
 	}
 
 	@Override
 	public void changeDataBase(String newDataBaseName) {
-		File x = new File("Data Bases");
-		File dataBaseFolder = new File(x.getAbsoluteFile(), newDataBaseName);
-		if (dataBaseFolder.exists()) {
-			currentDataBase = newDataBaseName;
-			wantedData = new ArrayList<ArrayList<String>>();
-		} else {
-			throw new RuntimeException();
+		if (newDataBaseName.length() != 0) {
+			File x = new File("Data Bases");
+			File dataBaseFolder = new File(x.getAbsoluteFile(), newDataBaseName);
+			if (dataBaseFolder.exists()) {
+				currentDataBase = newDataBaseName;
+				wantedData = new ArrayList<ArrayList<String>>();
+			} else {
+				throw new RuntimeException("This Data Base is not exisitng to be used");
+			}
 		}
 	}
 
 	private File makeFile(String dataBaseName, String tableName, String extension) {
 		if (this.currentDataBase == "" || this.currentTableName == "") {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Names for Data Base , Table");
 		}
 		File file = new File("Data Bases");
 		String path = file.getAbsolutePath() + File.separator + dataBaseName + File.separator + tableName + extension;
@@ -258,7 +262,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 		String[] strings = new String[2];
 		strings[0] = data;
 		strings[1] = value;
-		Arrays.sort(strings);
+		Arrays.sort(strings, new StringComparator());
 		if (operator.equals("=")) {
 			return data.equals(value);
 		} else if (operator.equals("<>")) {
@@ -295,8 +299,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 		for (int i = 0; i < coulmnValues.size(); i++) {
 			if (coulmnTypes.get(mycoulmnNames.indexOf(coulmnNames1.get(i))).equals("varchar")) {
 				continue;
-			}
-			else {
+			} else {
 				String str = coulmnValues.get(i);
 				for (int j = 0; j < str.length(); j++) {
 					if (!Character.isDigit(str.charAt(j))) {
@@ -325,7 +328,7 @@ public class DataBaseControlImpl implements DataBaseControl {
 
 	private void ready(String tableName) {
 		if (!validTableName(tableName)) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Table Name");
 		}
 		currentTableName = tableName;
 		file = makeFile(currentDataBase, currentTableName, ".xml");
@@ -349,11 +352,9 @@ public class DataBaseControlImpl implements DataBaseControl {
 		str1.add(conditions[0]);
 		ArrayList<String> str2 = new ArrayList<String>();
 		str2.add(conditions[2]);
-
 		str1 = toLow(str1);
-		// str2 = toLow(str2);
 		if (!validateCoulmnNames(str1) || !validateDataTypes(str1, str2)) {
-			throw new RuntimeException();
+			throw new RuntimeException("Invalid Coulmn Names , Data Types");
 		}
 	}
 
@@ -386,4 +387,22 @@ public class DataBaseControlImpl implements DataBaseControl {
 		return (ArrayList<String>) x2.clone();
 	}
 
+}
+
+class StringComparator implements Comparator<String>{
+	
+	@Override
+	public int compare(String arg0, String arg1) {
+		if(arg0.equals(arg1))return 0;
+		else if(((String)arg0).length() != ((String)arg1).length()){
+			return ((String)arg0).length() - ((String)arg1).length() ;
+		}
+		else{
+			String[] str = new String[2];
+			str[0] = (String)arg0;
+			str[1] = (String)arg1;
+			Arrays.sort(str);
+			return (str[1].equals(arg0) ? 1 : -1);
+		}
+	}
 }

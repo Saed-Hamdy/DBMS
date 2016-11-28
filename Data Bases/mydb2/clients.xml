@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE clients SYSTEM "clients.dtd">
+<clients coulmn0="password:int" coulmn1="user:varchar" coulmn2="Age:int" sizeCol="3" sizeRow="0"/>

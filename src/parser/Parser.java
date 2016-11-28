@@ -1,5 +1,6 @@
-package DBMSparser;
+package parser;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -31,6 +32,7 @@ public class Parser implements IParser {
      * some_column=some_value;
      */
     private DataBaseControlImpl Dpms = new DataBaseControlImpl();
+    private boolean error = false;
 
     private void print(String str) {
 
@@ -39,8 +41,8 @@ public class Parser implements IParser {
 
     private void error() {
 
-        print("error");
-        return;
+        error = true;
+
     }
 
     /**
@@ -48,10 +50,11 @@ public class Parser implements IParser {
      * method.
      * 
      * @param query
+     * @throws SQLException
      */
 
     @Override
-    public void InsertQuery(String query) {
+    public void InsertQuery(String query) throws SQLException {
 
         if (query == null || query.replaceAll("^\\s*", "").equals("")) {
             error();
@@ -103,6 +106,10 @@ public class Parser implements IParser {
             error();
 
             break;
+        }
+        if (error) {
+            error = false;
+            //throw new SQLException("SQL syntax error");
         }
     }
 
@@ -156,13 +163,9 @@ public class Parser implements IParser {
         Pattern pat = Pattern.compile("^(\\s*)((?i)insert)(\\s+)((?i)into)(\\s+)(\\w+)"
                 + "((\\s*)\\(((\\s*)(\\w+)(\\s*),)*((\\s*)(\\w+)(\\s*)\\)(\\s*)))?" + "((\\s+)((?i)values))(\\s*)\\("
                 + "(((\\s*)(('[^']*')|(\\d+))(\\s*),)*((\\s*)(('[^']*')|(\\d+))))(\\s*)\\)(\\s*)(\\s*);?(\\s*)$");
-        /*
-         * INSERT INTO TABLE_NAME (column1, column2, column3,...columnN) VALUES
-         * (value1, value2, value3,...valueN);
-         */
+
         Matcher ma = pat.matcher(query.replaceAll("\\)(?i)values", "\\) values"));
         if (ma.matches()) {
-            // print("mat");
             table_name = ma.group(6);
             if (ma.group(7) == null)
                 coloums = new ArrayList<String>();
@@ -184,13 +187,11 @@ public class Parser implements IParser {
                     }
                     trim = trim.substring(matc.end());
                 }
-
             }
             Dpms.insertIntoTable(coloums, value, table_name);
         } else {
             error();
         }
-
     }
 
     public void useDatabase(String query) {
@@ -201,7 +202,7 @@ public class Parser implements IParser {
             error();
             return;
         }
-        // Dpms.useDatabase(ma.group(2));
+        Dpms.changeDataBase(ma.group(2));
 
     }
 
@@ -239,37 +240,37 @@ public class Parser implements IParser {
             Dpms.deleteFromTable(Where((ma.group(9))), ma.group(6));
         } else {
             error();
+            return;
         }
 
     }
 
     public void Select(String query) {
-        /*
-         * SELECT column_name,column_name FROM table_name;
-         */
         query = query.replaceFirst("^\\s*((?i)select\\s*\\*)", "select * ");
         ArrayList<String> colomsName = new ArrayList<>();
-        String tableName;
+        String tableName, order = "asc";
         String selectPattern = "^\\s*((?i)select\\s+)"
                 + "((\\*\\s*)|((\\s*(\\w+)\\s*,)*(\\s*(\\w+)\\s+)))\\s*((?i)from\\s+)(\\w+)"
-                + "(\\s*((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?\\s*;?\\s*$";
-
+                + "(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?"
+                + "(\\s+(?i)order\\s+(?i)by\\s+(\\w+)(\\s+((?i)asc|(?i)desc))?)?\\s*;?\\s*$";
         Pattern pat = Pattern.compile(selectPattern);
         Matcher ma = pat.matcher(query);
-        // print(ma.find());
-
-        if (!ma.find()) {
+        if (!ma.find()){
             error();
             return;
-        } else {
+        }
+        else {
             colomsName = new ArrayList<String>(Arrays.asList(ma.group(2).replaceAll("\\s+", "").split(",")));
             tableName = ma.group(10);
             String[] wherecondition = Where(ma.group(13));
             if (colomsName.get(0).equals("*"))
                 colomsName = new ArrayList<>();
-            Dpms.selectFromTable(colomsName, wherecondition, tableName);
+            if (ma.group(20) != null && ma.group(22) != null) {
+                order = ma.group(22).trim();
+                Dpms.selectFromTable(colomsName, wherecondition, tableName, ma.group(21), order);
+            }
+            Dpms.selectFromTable(colomsName, wherecondition, tableName, null, null);
         }
-
     }
 
     public void Update(String query) {
@@ -292,9 +293,7 @@ public class Parser implements IParser {
         for (ArrayList<String> st : clmAndVlu) {
             columns.add(st.get(0));
             value.add(st.get(1));
-
         }
-
         Dpms.updateTable(columns, value, wherecondition, tableName);
     }
 
@@ -316,15 +315,13 @@ public class Parser implements IParser {
             }
         }
         return cndition;
-
     }
 
     public ArrayList<ArrayList<String>> colomValuesSpliter(String colomStateMent) {
         ArrayList<ArrayList<String>> clmAndVlu = new ArrayList<>();
         ArrayList<String> temp = new ArrayList<>();
-        //if (colomStateMent.endsWith("'"))
-            colomStateMent = colomStateMent.replaceAll("'\\s*$", "");
-
+        // if (colomStateMent.endsWith("'"))
+        colomStateMent = colomStateMent.replaceAll("'\\s*$", "");
         colomStateMent = colomStateMent.replaceAll("\\s*=\\s*'?", "=");
         colomStateMent = colomStateMent.replaceAll("'\\s*", "'");
         colomStateMent = colomStateMent.replaceAll("(\\d+)\\s*,\\s*", "$1',");
@@ -339,12 +336,34 @@ public class Parser implements IParser {
                 temp.add(ma.group(2));
                 clmAndVlu.add(temp);
             }
-
         }
         return clmAndVlu;
     }
 
     public static void main(String[] args) {
+//        String selectPattern = "^\\s*((?i)select\\s+)"
+//                + "((\\*\\s*)|((\\s*(\\w+)\\s*,)*(\\s*(\\w+)\\s+)))\\s*((?i)from\\s+)(\\w+)"
+//                + "(\\s+((?i)where)\\s+((\\w+)(\\s*)(>|<|=|>=|<=|<>)\\s*(('[^']*')|(\\d+))))?"
+//                + "(\\s+(?i)order\\s+by\\s+(\\w+)(\\s+((?i)asc|(?i)desc))?)?\\s*;?\\s*$";
+//
+//        Pattern pat = Pattern.compile(selectPattern);
+//        Matcher ma = pat.matcher("select name ,state from testTable1 where id ='2' order by irkif desc;");
+//        //System.out.println(ma.matches());
+//        System.out.println(ma.find());
+//        System.out.println(ma.matches());
+//        
+// for(int i=15;i<24;i++){
+//     System.out.println(i+"  "+ma.group(i));
+//     
+// }
+// System.out.println(ma.group(20)==null);
+// 
+// if (ma.group(20)!=null){
+//     String order="asc";
+//     if(ma.group(22)!=null)
+//         order=ma.group(22).trim();
+//     
+// }
         // Scanner in = new Scanner(System.in);
         Parser a = new Parser();
         // a.InsertQuery("select name ,state from testTable1 where id ='2' ;");
@@ -413,30 +432,36 @@ public class Parser implements IParser {
         /**
          * exception
          */
-      //  query.add("select name ,state from testTable1 where id ='10' ;");
+        query.add("select name ,state from testTable1 where id ='10' ;");
 
         query.add("select * from testTable ;");
         query.add("delete from testTable where id ='10';");
-//        query.add("select * from testTable ;");
-//
-//        query.add("drop database test1 ;");
-//        query.add("select * from testTable ;");
-//        query.add("select state,id from testTable where id>0 ;");
-//        
-//        /**
-//         * exceptions
-//         */
-//        query.add("create Database test1 ;");
-//        //query.add("create Database test ;");
-//        query.add("select * from testTable ;");
+        query.add("select * from testTable ;");
+
+        query.add("drop database test1 ;");
+        query.add("select * from testTable ;");
+        query.add("select state,id from testTable where id>0 ;");
+        
+        /**
+         * exceptions
+         */
+        query.add("create Database test1 ;");
+        //query.add("create Database test ;");
+        query.add("select * from testTable ;");
         Scanner in = new Scanner(System.in);
         for (String s : query) {
-            a.InsertQuery(s);
-            System.out.println(s);
-            in.nextLine();
+            try {
+                a.InsertQuery(s);
+                System.out.println(s);
+                in.nextLine();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                // TODO: handle exception
+            }
+            
         }
-        
-        a.InsertQuery("select name ,state from testTable where id >'2' ");
+      
+    //    a.InsertQuery("select name ,state from testTable where id >'2' ");
 
         /*
          * for (int i = 0; i < 5; i++) { System.out.println("jjj"); String s =

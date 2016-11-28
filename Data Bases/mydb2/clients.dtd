@@ -1,0 +1,4 @@
+<!ELEMENT clients (password,user,Age)>
+<!ELEMENT password (#PCDATA)>
+<!ELEMENT user (#PCDATA)>
+<!ELEMENT Age (#PCDATA)>

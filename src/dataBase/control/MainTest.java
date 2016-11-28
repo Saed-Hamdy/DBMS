@@ -39,14 +39,14 @@ public class MainTest {
 		ArrayList<String> values = new ArrayList<String>();
 		values.add("1234");
 		values.add("mohamed ahmed");
-		values.add("12");
+		values.add("1");
 		controlTest.insertIntoTable(new ArrayList<String>(), values, "clients");
 		
 		
-		values.set(2, "20");
+		values.set(2, "2");
 		controlTest.insertIntoTable(new ArrayList<String>(), values, "clients");
 
-		values.set(2, "34");
+		values.set(2, "3");
 		controlTest.insertIntoTable(new ArrayList<String>(), values, "clients");
 
 		coulmnNames.remove(2);
@@ -57,23 +57,26 @@ public class MainTest {
 		coulmnNames.clear();
 		values.clear();
 		coulmnNames.add("password");
-		coulmnNames.add("user");
 		coulmnNames.add("Age");
 
 		values.add("134");
-		values.add("ahemd ahmed ghaly");
 		values.add("40");
 
-		String[] conditions = { "Age", "<=", "20" };
+		String[] conditions = { "Age", "<", "17" };
 		controlTest.updateTable(coulmnNames, values, conditions, "clients");
 
 		String[] conditions3 = { "Age", "=", "34" };
-		controlTest.selectFromTable(controlTest.getCoulmnNames(), conditions3, controlTest.getTableName());
-
+		ArrayList<String> cols = new ArrayList<String>();
+		cols.add("passworD");
+		cols.add("age");
+		controlTest.selectFromTable(cols, conditions3, controlTest.getTableName(),null,null);
+		
+		/*
 		// test delete.
 		String[] conditions2 = { "Age", ">=", "20" };
 		controlTest.deleteFromTable(conditions2, "clients");
-
+		 */
+		
 		/*
 		 * 
 		 * // test drop controlTest.dropTable("clients");
@@ -82,5 +85,4 @@ public class MainTest {
 		 * 
 		 */
 	}
-
 }

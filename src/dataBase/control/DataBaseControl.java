@@ -50,7 +50,7 @@ public interface DataBaseControl {
 	 */
 
 	public void selectFromTable(ArrayList<String> column, String[] conditions,
-			String tableName);
+			String tableName, String colomnToOrder,String orderMethod);
 
 	/**
 	 * update a specific row in table
@@ -99,4 +99,5 @@ public interface DataBaseControl {
 	 * @return table name.
 	 */
 	public String getTableName();
+	
 }
